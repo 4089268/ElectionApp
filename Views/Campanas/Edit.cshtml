@@ -1,0 +1,79 @@
+@model CatCampana
+@{
+    ViewData["Title"] = "Editar campaña";
+    string[] meses = { "", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre" };
+}
+
+<div class="breadcrumb-main">
+    <div class="d-flex flex-wrap justify-content-center breadcrumb-main__wrapper">
+        <div class="d-flex align-items-center">
+            <h4 class="text-capitalize fw-500 breadcrumb-title">Editar campaña</h4>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-9">
+        <div class="card mb-30">
+            <div class="card-header border-bottom-0 p-sm-30">
+                <h5 class="fw-500">@Model.Descripcion</h5>
+            </div>
+            <div class="card-body pt-0 px-30 pb-35">
+                <form asp-action="Edit" asp-route-id="@Model.IdCampana" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-15"></div>
+                    <input type="hidden" asp-for="IdCampana" />
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group mb-25">
+                                <label asp-for="Descripcion"></label>
+                                <input asp-for="Descripcion" class="form-control" required />
+                                <span asp-validation-for="Descripcion" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-25">
+                                <label asp-for="Puesto"></label>
+                                <input asp-for="Puesto" class="form-control" required />
+                                <span asp-validation-for="Puesto" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group mb-25">
+                                <label asp-for="Politico"></label>
+                                <input asp-for="Politico" class="form-control" required />
+                                <span asp-validation-for="Politico" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group mb-25">
+                                <label asp-for="Anio"></label>
+                                <input asp-for="Anio" class="form-control" type="number" min="2000" max="2100" required />
+                                <span asp-validation-for="Anio" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group mb-25">
+                                <label asp-for="Mes"></label>
+                                <select asp-for="Mes" class="form-control" required>
+                                    <option value="">-- Selecciona --</option>
+                                    @for (var m = 1; m <= 12; m++)
+                                    {
+                                        <option value="@m" selected="@(Model.Mes == m)">@meses[m]</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="Mes" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="button-group d-flex pt-25">
+                        <button type="submit" class="btn btn-primary btn-default btn-squared px-30 me-15">Guardar</button>
+                        <a asp-action="Index" class="btn btn-light btn-default btn-squared px-30">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

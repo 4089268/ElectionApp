@@ -1,0 +1,79 @@
+@model IEnumerable<CatIntegrante>
+@{
+    ViewData["Title"] = "Integrantes";
+}
+
+<div class="breadcrumb-main user-member justify-content-sm-between">
+    <div class="d-flex flex-wrap justify-content-center breadcrumb-main__wrapper">
+        <div class="d-flex align-items-center user-member__title justify-content-center me-sm-25">
+            <h4 class="text-capitalize fw-500 breadcrumb-title">Integrantes</h4>
+            <span class="sub-title ms-sm-25 ps-sm-25">@Model.Count() en total</span>
+        </div>
+        <form method="get" class="d-flex align-items-center user-member__form my-sm-0 my-2">
+            <img src="~/theme/img/svg/search.svg" alt="search" class="svg">
+            <input type="text" name="filtro" value="@ViewBag.Filtro" class="form-control me-sm-2 border-0 box-shadow-none" placeholder="Buscar por nombre, sección o clave de elector">
+        </form>
+    </div>
+    <div class="action-btn">
+        <a asp-action="Create" class="btn px-15 btn-primary">
+            <i class="las la-plus fs-16"></i> Nuevo integrante</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100 mb-30">
+            <div class="table-responsive">
+                <table class="table mb-0 table-borderless">
+                    <thead>
+                        <tr class="userDatatable-header">
+                            <th><span class="userDatatable-title">Nombre</span></th>
+                            <th><span class="userDatatable-title">Rol</span></th>
+                            <th><span class="userDatatable-title">Campaña</span></th>
+                            <th><span class="userDatatable-title">Sección</span></th>
+                            <th><span class="userDatatable-title">Celular</span></th>
+                            <th><span class="userDatatable-title float-end">Acciones</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var integrante in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="userDatatable-inline-title">
+                                        <a asp-action="Details" asp-route-id="@integrante.IdIntegrante" class="text-dark fw-500">
+                                            <h6>@integrante.NombreCompleto</h6>
+                                        </a>
+                                    </div>
+                                </td>
+                                <td><div class="userDatatable-content">@integrante.Rol.Descripcion</div></td>
+                                <td><div class="userDatatable-content">@integrante.Campana.Descripcion</div></td>
+                                <td><div class="userDatatable-content">@integrante.Seccion</div></td>
+                                <td><div class="userDatatable-content">@integrante.Celular</div></td>
+                                <td>
+                                    <ul class="orderDatatable_actions mb-0 d-flex flex-wrap justify-content-end">
+                                        <li>
+                                            <a asp-action="Details" asp-route-id="@integrante.IdIntegrante" class="view">
+                                                <i class="uil uil-eye"></i>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a asp-action="Edit" asp-route-id="@integrante.IdIntegrante" class="edit">
+                                                <i class="uil uil-edit"></i>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a asp-action="Delete" asp-route-id="@integrante.IdIntegrante" class="remove">
+                                                <i class="uil uil-trash-alt"></i>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

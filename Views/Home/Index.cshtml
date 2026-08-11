@@ -1,0 +1,119 @@
+@{
+    ViewData["Title"] = "Inicio";
+}
+
+<div class="breadcrumb-main">
+    <div class="d-flex flex-wrap justify-content-center breadcrumb-main__wrapper">
+        <div class="d-flex align-items-center">
+            <h4 class="text-capitalize fw-500 breadcrumb-title">Panel general</h4>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xxl-4 col-sm-6 mb-25">
+        <div class="ap-po-details ap-po-details--2 p-25 radius-xl d-flex justify-content-between">
+            <div class="overview-content w-100">
+                <div class="ap-po-details-content d-flex flex-wrap justify-content-between">
+                    <div class="ap-po-details__titlebar">
+                        <h1>@ViewBag.TotalIntegrantes</h1>
+                        <p>Integrantes</p>
+                    </div>
+                    <div class="ap-po-details__icon-area">
+                        <div class="svg-icon order-bg-opacity-info color-info">
+                            <i class="uil uil-users-alt"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xxl-4 col-sm-6 mb-25">
+        <div class="ap-po-details ap-po-details--2 p-25 radius-xl d-flex justify-content-between">
+            <div class="overview-content w-100">
+                <div class="ap-po-details-content d-flex flex-wrap justify-content-between">
+                    <div class="ap-po-details__titlebar">
+                        <h1>@ViewBag.TotalEventos</h1>
+                        <p>Eventos</p>
+                    </div>
+                    <div class="ap-po-details__icon-area">
+                        <div class="svg-icon order-bg-opacity-warning color-warning">
+                            <i class="uil uil-calendar-alt"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xxl-4 col-sm-6 mb-25">
+        <div class="ap-po-details ap-po-details--2 p-25 radius-xl d-flex justify-content-between">
+            <div class="overview-content w-100">
+                <div class="ap-po-details-content d-flex flex-wrap justify-content-between">
+                    <div class="ap-po-details__titlebar">
+                        <h1>@ViewBag.TotalCampanas</h1>
+                        <p>Campañas</p>
+                    </div>
+                    <div class="ap-po-details__icon-area">
+                        <div class="svg-icon order-bg-opacity-secondary color-secondary">
+                            <i class="uil uil-megaphone"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card mb-30">
+            <div class="card-header border-bottom-0 p-sm-30">
+                <h5 class="fw-500">Mapa de eventos</h5>
+            </div>
+            <div class="card-body pt-0 px-30 pb-35">
+                @if ((int)ViewBag.EventosConMapa == 0)
+                {
+                    <p class="mb-0">Todavía no hay eventos con ubicación geolocalizada.</p>
+                }
+                else
+                {
+                    <div id="mapa-eventos" style="height: 420px;"></div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var eventos = @Html.Raw(ViewBag.EventosMapaJson ?? "[]");
+            var contenedor = document.getElementById('mapa-eventos');
+            if (!contenedor || !eventos.length) {
+                return;
+            }
+
+            var mapa = L.map(contenedor).setView([eventos[0].lat, eventos[0].lng], 5);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 18,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+            }).addTo(mapa);
+
+            var grupo = L.featureGroup();
+            eventos.forEach(function (ev) {
+                var marcador = L.marker([ev.lat, ev.lng]).bindPopup(
+                    '<strong>' + ev.descripcion + '</strong><br>' +
+                    ev.fecha + ' ' + ev.hora + '<br>' +
+                    (ev.lugar ? ev.lugar + '<br>' : '') +
+                    ev.municipio + ', ' + ev.estado
+                );
+                marcador.addTo(mapa);
+                grupo.addLayer(marcador);
+            });
+
+            if (eventos.length > 1) {
+                mapa.fitBounds(grupo.getBounds().pad(0.2));
+            }
+        })();
+    </script>
+}

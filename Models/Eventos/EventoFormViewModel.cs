@@ -1,0 +1,64 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace ElectionApp.Models.Eventos;
+
+// Forma de captura para Create/Edit de Opr_Eventos. Junta los campos del
+// evento con los de la ubicación (Cat_Ubicacion) para no obligar a crear
+// la ubicación desde otra pantalla antes de poder registrar un evento.
+public class EventoFormViewModel
+{
+    public int IdEvento { get; set; }
+
+    [Required(ErrorMessage = "La descripción es obligatoria")]
+    [StringLength(255)]
+    [Display(Name = "Descripción")]
+    public string Descripcion { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "La fecha es obligatoria")]
+    [Display(Name = "Fecha")]
+    public DateOnly Fecha { get; set; }
+
+    [Required(ErrorMessage = "La hora es obligatoria")]
+    [Display(Name = "Hora")]
+    public TimeOnly Hora { get; set; }
+
+    [Required(ErrorMessage = "La campaña es obligatoria")]
+    [Display(Name = "Campaña")]
+    public int IdCampana { get; set; }
+
+    [StringLength(255)]
+    [Display(Name = "Lugar")]
+    public string? Lugar { get; set; }
+
+    [Range(0, 99999999.99, ErrorMessage = "Costo fuera de rango")]
+    [Display(Name = "Costo estimado")]
+    public decimal? CostoEstimado { get; set; }
+
+    [Range(0, 99999999.99, ErrorMessage = "Costo fuera de rango")]
+    [Display(Name = "Costo real")]
+    public decimal? CostoReal { get; set; }
+
+    [Required(ErrorMessage = "El CP es obligatorio")]
+    [StringLength(10)]
+    [Display(Name = "CP")]
+    public string Cp { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "La colonia es obligatoria")]
+    [StringLength(150)]
+    [Display(Name = "Colonia")]
+    public string Colonia { get; set; } = string.Empty;
+
+    [StringLength(150)]
+    [Display(Name = "Localidad")]
+    public string? Localidad { get; set; }
+
+    [Required(ErrorMessage = "El municipio es obligatorio")]
+    [StringLength(150)]
+    [Display(Name = "Municipio")]
+    public string Municipio { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "El estado es obligatorio")]
+    [StringLength(150)]
+    [Display(Name = "Estado")]
+    public string Estado { get; set; } = string.Empty;
+}

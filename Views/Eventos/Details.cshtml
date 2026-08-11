@@ -1,0 +1,51 @@
+@model OprEvento
+@{
+    ViewData["Title"] = "Detalle del evento";
+}
+
+<div class="breadcrumb-main">
+    <div class="d-flex flex-wrap justify-content-center breadcrumb-main__wrapper">
+        <div class="d-flex align-items-center">
+            <h4 class="text-capitalize fw-500 breadcrumb-title">@Model.Descripcion</h4>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-9">
+        <div class="card mb-30">
+            <div class="card-body p-sm-30">
+                <dl class="row mb-0">
+                    <dt class="col-sm-3">Campaña</dt>
+                    <dd class="col-sm-9">@Model.Campana.Descripcion</dd>
+
+                    <dt class="col-sm-3">Fecha / Hora</dt>
+                    <dd class="col-sm-9">@Model.Fecha.ToString("dd/MM/yyyy") @Model.Hora.ToString("HH:mm")</dd>
+
+                    <dt class="col-sm-3">Lugar</dt>
+                    <dd class="col-sm-9">@Model.Lugar</dd>
+
+                    <dt class="col-sm-3">Ubicación</dt>
+                    <dd class="col-sm-9">
+                        @($"{Model.Ubicacion.Colonia}, {Model.Ubicacion.Municipio}, {Model.Ubicacion.Estado} CP {Model.Ubicacion.Cp}")
+                        @if (!string.IsNullOrWhiteSpace(Model.Ubicacion.Localidad))
+                        {
+                            @($" ({Model.Ubicacion.Localidad})")
+                        }
+                    </dd>
+
+                    <dt class="col-sm-3">Costo estimado</dt>
+                    <dd class="col-sm-9">@(Model.CostoEstimado?.ToString("C2"))</dd>
+
+                    <dt class="col-sm-3">Costo real</dt>
+                    <dd class="col-sm-9">@(Model.CostoReal?.ToString("C2"))</dd>
+                </dl>
+
+                <div class="button-group d-flex pt-15">
+                    <a asp-action="Edit" asp-route-id="@Model.IdEvento" class="btn btn-primary btn-default btn-squared px-30 me-15">Editar</a>
+                    <a asp-action="Index" class="btn btn-light btn-default btn-squared px-30">Volver al listado</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
