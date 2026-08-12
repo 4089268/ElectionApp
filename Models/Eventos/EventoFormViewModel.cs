@@ -22,8 +22,8 @@ public class EventoFormViewModel
     [Display(Name = "Hora")]
     public TimeOnly Hora { get; set; }
 
-    [Required(ErrorMessage = "La campaña es obligatoria")]
-    [Display(Name = "Campaña")]
+    // La fija el servidor desde la campaña activa en sesión (ver
+    // EventosController.ObtenerIdCampanaActual); no se captura en el form.
     public int IdCampana { get; set; }
 
     [StringLength(255)]

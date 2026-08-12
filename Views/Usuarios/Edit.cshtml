@@ -1,0 +1,90 @@
+@model UsuarioFormViewModel
+@{
+    ViewData["Title"] = "Editar usuario";
+}
+
+<div class="breadcrumb-main">
+    <div class="d-flex flex-wrap justify-content-center breadcrumb-main__wrapper">
+        <div class="d-flex align-items-center">
+            <h4 class="text-capitalize fw-500 breadcrumb-title">Editar usuario</h4>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-9">
+        <div class="card mb-30">
+            <div class="card-header border-bottom-0 p-sm-30">
+                <h5 class="fw-500">@Model.UsuarioNombre</h5>
+            </div>
+            <div class="card-body pt-0 px-30 pb-35">
+                <form asp-action="Edit" asp-route-id="@Model.IdUsuario" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-15"></div>
+                    <input type="hidden" asp-for="IdUsuario" />
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-25">
+                                <label asp-for="UsuarioNombre"></label>
+                                <input asp-for="UsuarioNombre" class="form-control" required />
+                                <span asp-validation-for="UsuarioNombre" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-25">
+                                <label asp-for="Correo"></label>
+                                <input asp-for="Correo" class="form-control" type="email" />
+                                <span asp-validation-for="Correo" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group mb-25">
+                                <label asp-for="Password">Nueva contraseña</label>
+                                <input asp-for="Password" class="form-control" type="password" placeholder="Dejar en blanco para no cambiarla" />
+                                <span asp-validation-for="Password" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-25">
+                                <label asp-for="ConfirmPassword"></label>
+                                <input asp-for="ConfirmPassword" class="form-control" type="password" />
+                                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group mb-25">
+                                <label asp-for="IdRolApp"></label>
+                                <select asp-for="IdRolApp" class="form-control" asp-items="@(new SelectList(ViewBag.RolesApp, "IdRolApp", "Descripcion"))" required>
+                                    <option value="">-- Selecciona --</option>
+                                </select>
+                                <span asp-validation-for="IdRolApp" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-25">
+                                <label asp-for="IdIntegrante">Integrante vinculado</label>
+                                <select asp-for="IdIntegrante" class="form-control" asp-items="@(new SelectList(ViewBag.Integrantes, "IdIntegrante", "NombreCompleto"))">
+                                    <option value="">-- Ninguno --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-check mb-25 mt-10">
+                                <input asp-for="Activo" class="form-check-input" />
+                                <label asp-for="Activo" class="form-check-label"></label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="button-group d-flex pt-25">
+                        <button type="submit" class="btn btn-primary btn-default btn-squared px-30 me-15">Guardar cambios</button>
+                        <a asp-action="Index" class="btn btn-light btn-default btn-squared px-30">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,4 +1,4 @@
-@model CatIntegrante
+@model CatIntegranteCampana
 @{
     ViewData["Title"] = "Detalle del integrante";
 }
@@ -6,7 +6,7 @@
 <div class="breadcrumb-main">
     <div class="d-flex flex-wrap justify-content-center breadcrumb-main__wrapper">
         <div class="d-flex align-items-center">
-            <h4 class="text-capitalize fw-500 breadcrumb-title">@Model.NombreCompleto</h4>
+            <h4 class="text-capitalize fw-500 breadcrumb-title">@Model.Integrante.NombreCompleto</h4>
         </div>
     </div>
 </div>
@@ -16,49 +16,49 @@
         <div class="card mb-30">
             <div class="card-body p-sm-30">
                 <dl class="row mb-0">
+                    <dt class="col-sm-3">CURP</dt>
+                    <dd class="col-sm-9">@Model.Integrante.Curp</dd>
+
                     <dt class="col-sm-3">Ocupación</dt>
-                    <dd class="col-sm-9">@Model.Ocupacion</dd>
+                    <dd class="col-sm-9">@Model.Integrante.Ocupacion</dd>
 
                     <dt class="col-sm-3">Edad</dt>
-                    <dd class="col-sm-9">@Model.Edad</dd>
+                    <dd class="col-sm-9">@Model.Integrante.Edad</dd>
 
                     <dt class="col-sm-3">Estado civil</dt>
-                    <dd class="col-sm-9">@Model.EstadoCivil?.Descripcion</dd>
+                    <dd class="col-sm-9">@Model.Integrante.EstadoCivil?.Descripcion</dd>
 
                     <dt class="col-sm-3">Hijos mayores de edad</dt>
-                    <dd class="col-sm-9">@Model.HijosMayoresEdad</dd>
+                    <dd class="col-sm-9">@Model.Integrante.HijosMayoresEdad</dd>
 
                     <dt class="col-sm-3">Sección</dt>
-                    <dd class="col-sm-9">@Model.Seccion</dd>
+                    <dd class="col-sm-9">@Model.Integrante.Seccion</dd>
 
                     <dt class="col-sm-3">Clave de elector</dt>
-                    <dd class="col-sm-9">@Model.ClaveElector</dd>
+                    <dd class="col-sm-9">@Model.Integrante.ClaveElector</dd>
 
                     <dt class="col-sm-3">Celular / WhatsApp</dt>
-                    <dd class="col-sm-9">@Model.Celular / @Model.Whatsapp</dd>
+                    <dd class="col-sm-9">@Model.Integrante.Celular / @Model.Integrante.Whatsapp</dd>
 
                     <dt class="col-sm-3">Facebook</dt>
-                    <dd class="col-sm-9">@Model.Facebook</dd>
+                    <dd class="col-sm-9">@Model.Integrante.Facebook</dd>
 
                     <dt class="col-sm-3">Domicilio</dt>
                     <dd class="col-sm-9">
-                        @if (Model.Domicilio is not null)
+                        @if (Model.Integrante.Domicilio is not null)
                         {
-                            @($"{Model.Domicilio.Calle} {Model.Domicilio.Numero}, {Model.Domicilio.Colonia}, {Model.Domicilio.Ciudad}, {Model.Domicilio.Estado} CP {Model.Domicilio.Cp}")
+                            @($"{Model.Integrante.Domicilio.Calle} {Model.Integrante.Domicilio.Numero}, {Model.Integrante.Domicilio.Colonia}, {Model.Integrante.Domicilio.Ciudad}, {Model.Integrante.Domicilio.Estado} CP {Model.Integrante.Domicilio.Cp}")
                         }
                     </dd>
 
-                    <dt class="col-sm-3">Rol</dt>
+                    <dt class="col-sm-3">Rol en esta campaña</dt>
                     <dd class="col-sm-9">@Model.Rol.Descripcion</dd>
 
-                    <dt class="col-sm-3">Campaña</dt>
-                    <dd class="col-sm-9">@Model.Campana.Descripcion</dd>
+                    <dt class="col-sm-3">Afiliado desde</dt>
+                    <dd class="col-sm-9">@Model.FechaAfiliacion.ToString("dd/MM/yyyy HH:mm")</dd>
 
-                    <dt class="col-sm-3">Reporta a</dt>
-                    <dd class="col-sm-9">@Model.IntegranteSuperior?.NombreCompleto</dd>
-
-                    <dt class="col-sm-3">Fecha de registro</dt>
-                    <dd class="col-sm-9">@Model.FechaRegistro.ToString("dd/MM/yyyy HH:mm")</dd>
+                    <dt class="col-sm-3">Registrado en el padrón desde</dt>
+                    <dd class="col-sm-9">@Model.Integrante.FechaRegistro.ToString("dd/MM/yyyy HH:mm")</dd>
                 </dl>
 
                 <div class="button-group d-flex pt-15">

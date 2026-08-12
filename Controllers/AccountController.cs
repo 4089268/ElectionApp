@@ -42,6 +42,7 @@ public class AccountController : Controller
 
         var usuario = await _db.Usuarios
             .Include(u => u.RolApp)
+            .Include(u => u.CampanaActual)
             .FirstOrDefaultAsync(u => u.UsuarioNombre == model.Usuario);
 
         if (usuario is null || !usuario.Activo)
@@ -82,18 +83,27 @@ public class AccountController : Controller
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
 
-        if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
+        var destino = !string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl)
+            ? model.ReturnUrl
+            : Url.Action("Index", "Home");
+
+        // Si el usuario ya había elegido una campaña en una sesión anterior,
+        // se recarga sola y nos saltamos la pantalla de selección.
+        if (usuario.CampanaActual is not null)
         {
-            return Redirect(model.ReturnUrl);
+            HttpContext.Session.SetInt32("IdCampanaActual", usuario.CampanaActual.IdCampana);
+            HttpContext.Session.SetString("NombreCampanaActual", usuario.CampanaActual.Descripcion);
+            return Redirect(destino!);
         }
 
-        return RedirectToAction("Index", "Home");
+        return RedirectToAction("Seleccionar", "Campanas", new { returnUrl = destino });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout()
     {
+        HttpContext.Session.Clear();
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         return RedirectToAction("Login");
     }

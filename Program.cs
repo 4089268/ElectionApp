@@ -24,6 +24,16 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddScoped<PasswordService>();
 builder.Services.AddHttpClient();
 
+// Sesion en memoria: aqui se guarda la campaña con la que esta trabajando
+// el usuario (IdCampanaActual / NombreCampanaActual). Ver Campanas/Seleccionar.
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromHours(8);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -58,8 +68,33 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseSession();
+
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Toda la app trabaja "dentro" de una campaña. Si el usuario ya inicio
+// sesion pero todavia no eligio con cual campaña trabajar, se le manda a
+// elegirla (excepto en las rutas de login/logout y la de seleccion misma).
+app.Use(async (context, next) =>
+{
+    if (context.User.Identity?.IsAuthenticated == true)
+    {
+        var path = context.Request.Path;
+        var esRutaExenta = path.StartsWithSegments("/Account")
+            || path.StartsWithSegments("/Campanas/Seleccionar")
+            || path.StartsWithSegments("/Campanas/Establecer");
+
+        if (!esRutaExenta && context.Session.GetInt32("IdCampanaActual") is null)
+        {
+            var returnUrl = Uri.EscapeDataString(context.Request.Path + context.Request.QueryString);
+            context.Response.Redirect($"/Campanas/Seleccionar?returnUrl={returnUrl}");
+            return;
+        }
+    }
+
+    await next();
+});
 
 app.MapControllerRoute(
     name: "default",

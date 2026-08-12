@@ -19,6 +19,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<CatDomicilio> CatDomicilios => Set<CatDomicilio>();
     public DbSet<CatUbicacion> CatUbicaciones => Set<CatUbicacion>();
     public DbSet<CatIntegrante> CatIntegrantes => Set<CatIntegrante>();
+    public DbSet<CatIntegranteCampana> CatIntegranteCampanas => Set<CatIntegranteCampana>();
     public DbSet<OprEvento> OprEventos => Set<OprEvento>();
     public DbSet<OprEventoParticipante> OprEventoParticipantes => Set<OprEventoParticipante>();
     public DbSet<OprGastoEvento> OprGastosEvento => Set<OprGastoEvento>();
@@ -95,6 +96,7 @@ public class ApplicationDbContext : DbContext
             e.ToTable("Cat_Integrantes", "dbo");
             e.HasKey(x => x.IdIntegrante);
             e.Property(x => x.IdIntegrante).HasColumnName("id_integrante");
+            e.Property(x => x.Curp).HasColumnName("curp").HasMaxLength(18).IsRequired();
             e.Property(x => x.Nombre).HasColumnName("nombre").HasMaxLength(100).IsRequired();
             e.Property(x => x.ApellidoPaterno).HasColumnName("apellido_paterno").HasMaxLength(100).IsRequired();
             e.Property(x => x.ApellidoMaterno).HasColumnName("apellido_materno").HasMaxLength(100);
@@ -109,21 +111,38 @@ public class ApplicationDbContext : DbContext
             e.Property(x => x.Celular).HasColumnName("celular").HasMaxLength(15);
             e.Property(x => x.Whatsapp).HasColumnName("whatsapp").HasMaxLength(15);
             e.Property(x => x.Facebook).HasColumnName("facebook").HasMaxLength(150);
-            e.Property(x => x.IdRol).HasColumnName("id_rol");
-            e.Property(x => x.IdCampana).HasColumnName("id_campaña");
-            e.Property(x => x.IdIntegranteSuperior).HasColumnName("id_integrante_superior");
             e.Property(x => x.FechaRegistro).HasColumnName("fecha_registro");
+
+            e.HasIndex(x => x.Curp).IsUnique();
 
             e.HasOne(x => x.EstadoCivil).WithMany(x => x.Integrantes)
                 .HasForeignKey(x => x.IdEstadoCivil).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.Domicilio).WithMany(x => x.Integrantes)
                 .HasForeignKey(x => x.IdDomicilio).OnDelete(DeleteBehavior.Restrict);
-            e.HasOne(x => x.Rol).WithMany(x => x.Integrantes)
-                .HasForeignKey(x => x.IdRol).OnDelete(DeleteBehavior.Restrict);
-            e.HasOne(x => x.Campana).WithMany(x => x.Integrantes)
+        });
+
+        // ---------- dbo.Cat_Integrante_Campañas ----------
+        modelBuilder.Entity<CatIntegranteCampana>(e =>
+        {
+            e.ToTable("Cat_Integrante_Campañas", "dbo");
+            e.HasKey(x => x.IdIntegranteCampana);
+            e.Property(x => x.IdIntegranteCampana).HasColumnName("id_integrante_campana");
+            e.Property(x => x.IdIntegrante).HasColumnName("id_integrante");
+            e.Property(x => x.IdCampana).HasColumnName("id_campaña");
+            e.Property(x => x.IdRol).HasColumnName("id_rol");
+            e.Property(x => x.IdIntegranteSuperiorCampana).HasColumnName("id_integrante_superior_campana");
+            e.Property(x => x.FechaAfiliacion).HasColumnName("fecha_afiliacion");
+
+            e.HasIndex(x => new { x.IdIntegrante, x.IdCampana }).IsUnique();
+
+            e.HasOne(x => x.Integrante).WithMany(x => x.Afiliaciones)
+                .HasForeignKey(x => x.IdIntegrante).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Campana).WithMany(x => x.Afiliaciones)
                 .HasForeignKey(x => x.IdCampana).OnDelete(DeleteBehavior.Restrict);
-            e.HasOne(x => x.IntegranteSuperior).WithMany(x => x.Subordinados)
-                .HasForeignKey(x => x.IdIntegranteSuperior).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Rol).WithMany(x => x.Afiliaciones)
+                .HasForeignKey(x => x.IdRol).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Superior).WithMany(x => x.Subordinados)
+                .HasForeignKey(x => x.IdIntegranteSuperiorCampana).OnDelete(DeleteBehavior.Restrict);
         });
 
         // ---------- dbo.Opr_Eventos ----------
@@ -201,6 +220,7 @@ public class ApplicationDbContext : DbContext
             e.Property(x => x.Correo).HasColumnName("correo").HasMaxLength(200);
             e.Property(x => x.PasswordHash).HasColumnName("password_hash").HasColumnType("varbinary(256)").IsRequired();
             e.Property(x => x.IdRolApp).HasColumnName("id_rol_app");
+            e.Property(x => x.IdCampanaActual).HasColumnName("id_campaña_actual");
             e.Property(x => x.Activo).HasColumnName("activo");
             e.Property(x => x.FechaCreacion).HasColumnName("fecha_creacion");
             e.Property(x => x.UltimoAcceso).HasColumnName("ultimo_acceso");
@@ -214,6 +234,8 @@ public class ApplicationDbContext : DbContext
                 .HasForeignKey(x => x.IdIntegrante).OnDelete(DeleteBehavior.SetNull);
             e.HasOne(x => x.RolApp).WithMany(x => x.Usuarios)
                 .HasForeignKey(x => x.IdRolApp).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.CampanaActual).WithMany()
+                .HasForeignKey(x => x.IdCampanaActual).OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

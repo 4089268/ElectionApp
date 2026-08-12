@@ -1,0 +1,38 @@
+@{
+    ViewData["Title"] = "Agregar integrante";
+}
+
+<div class="breadcrumb-main">
+    <div class="d-flex flex-wrap justify-content-center breadcrumb-main__wrapper">
+        <div class="d-flex align-items-center">
+            <h4 class="text-capitalize fw-500 breadcrumb-title">Agregar integrante</h4>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-7">
+        <div class="card mb-30">
+            <div class="card-header border-bottom-0 p-sm-30">
+                <h5 class="fw-500">Buscar por CURP</h5>
+            </div>
+            <div class="card-body pt-0 px-30 pb-35">
+                <p class="mb-20">
+                    El padrón de integrantes es global: primero buscamos por CURP para no
+                    duplicar a una persona que ya está registrada en otra campaña.
+                </p>
+                <form asp-action="Buscar" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-15"></div>
+                    <div class="form-group mb-25">
+                        <label for="curp">CURP</label>
+                        <input type="text" id="curp" name="curp" class="form-control text-uppercase" maxlength="18" required autofocus />
+                    </div>
+                    <div class="button-group d-flex pt-10">
+                        <button type="submit" class="btn btn-primary btn-default btn-squared px-30 me-15">Buscar</button>
+                        <a asp-action="Index" class="btn btn-light btn-default btn-squared px-30">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

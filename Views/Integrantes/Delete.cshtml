@@ -1,12 +1,12 @@
-@model CatIntegrante
+@model CatIntegranteCampana
 @{
-    ViewData["Title"] = "Eliminar integrante";
+    ViewData["Title"] = "Quitar integrante de la campaña";
 }
 
 <div class="breadcrumb-main">
     <div class="d-flex flex-wrap justify-content-center breadcrumb-main__wrapper">
         <div class="d-flex align-items-center">
-            <h4 class="text-capitalize fw-500 breadcrumb-title">¿Eliminar integrante?</h4>
+            <h4 class="text-capitalize fw-500 breadcrumb-title">¿Quitar de esta campaña?</h4>
         </div>
     </div>
 </div>
@@ -15,17 +15,23 @@
     <div class="col-lg-9">
         <div class="card mb-30">
             <div class="card-body p-sm-30">
-                <p>Esta acción no se puede deshacer.</p>
+                <p>
+                    Esto solo quita a la persona de <strong>esta campaña</strong>; su registro
+                    global en el padrón de integrantes no se elimina y sigue disponible para
+                    afiliarse a otras campañas.
+                </p>
                 <dl class="row">
                     <dt class="col-sm-2">Nombre</dt>
-                    <dd class="col-sm-10">@Model.NombreCompleto</dd>
+                    <dd class="col-sm-10">@Model.Integrante.NombreCompleto</dd>
+                    <dt class="col-sm-2">CURP</dt>
+                    <dd class="col-sm-10">@Model.Integrante.Curp</dd>
                     <dt class="col-sm-2">Rol</dt>
                     <dd class="col-sm-10">@Model.Rol.Descripcion</dd>
                 </dl>
 
                 <form asp-action="Delete" asp-route-id="@Model.IdIntegrante" method="post">
                     <div class="button-group d-flex pt-15">
-                        <button type="submit" class="btn btn-danger btn-default btn-squared px-30 me-15">Sí, eliminar</button>
+                        <button type="submit" class="btn btn-danger btn-default btn-squared px-30 me-15">Sí, quitar de esta campaña</button>
                         <a asp-action="Index" class="btn btn-light btn-default btn-squared px-30">Cancelar</a>
                     </div>
                 </form>

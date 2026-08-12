@@ -23,9 +23,11 @@ public class EventosController : Controller
     // GET: /Eventos
     public async Task<IActionResult> Index(string? filtro)
     {
+        var idCampanaActual = ObtenerIdCampanaActual();
         var query = _db.OprEventos
             .Include(e => e.Campana)
             .Include(e => e.Ubicacion)
+            .Where(e => e.IdCampana == idCampanaActual)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(filtro))
@@ -46,10 +48,11 @@ public class EventosController : Controller
     // GET: /Eventos/Details/5
     public async Task<IActionResult> Details(int id)
     {
+        var idCampanaActual = ObtenerIdCampanaActual();
         var evento = await _db.OprEventos
             .Include(e => e.Campana)
             .Include(e => e.Ubicacion)
-            .FirstOrDefaultAsync(e => e.IdEvento == id);
+            .FirstOrDefaultAsync(e => e.IdEvento == id && e.IdCampana == idCampanaActual);
 
         if (evento is null)
         {
@@ -60,11 +63,12 @@ public class EventosController : Controller
     }
 
     // GET: /Eventos/Create
-    public async Task<IActionResult> Create()
+    public IActionResult Create()
     {
-        await CargarCampanasAsync();
+        ViewBag.NombreCampanaActual = HttpContext.Session.GetString("NombreCampanaActual");
         return View(new EventoFormViewModel
         {
+            IdCampana = ObtenerIdCampanaActual(),
             Fecha = DateOnly.FromDateTime(DateTime.Today),
             Hora = TimeOnly.FromDateTime(DateTime.Now),
         });
@@ -77,7 +81,7 @@ public class EventosController : Controller
     {
         if (!ModelState.IsValid)
         {
-            await CargarCampanasAsync();
+            ViewBag.NombreCampanaActual = HttpContext.Session.GetString("NombreCampanaActual");
             return View(modelo);
         }
 
@@ -88,7 +92,7 @@ public class EventosController : Controller
             Descripcion = modelo.Descripcion,
             Fecha = modelo.Fecha,
             Hora = modelo.Hora,
-            IdCampana = modelo.IdCampana,
+            IdCampana = ObtenerIdCampanaActual(),
             IdUbicacion = ubicacion.IdUbicacion,
             Lugar = modelo.Lugar,
             CostoEstimado = modelo.CostoEstimado,
@@ -103,16 +107,17 @@ public class EventosController : Controller
     // GET: /Eventos/Edit/5
     public async Task<IActionResult> Edit(int id)
     {
+        var idCampanaActual = ObtenerIdCampanaActual();
         var evento = await _db.OprEventos
             .Include(e => e.Ubicacion)
-            .FirstOrDefaultAsync(e => e.IdEvento == id);
+            .FirstOrDefaultAsync(e => e.IdEvento == id && e.IdCampana == idCampanaActual);
 
         if (evento is null)
         {
             return NotFound();
         }
 
-        await CargarCampanasAsync();
+        ViewBag.NombreCampanaActual = HttpContext.Session.GetString("NombreCampanaActual");
         return View(new EventoFormViewModel
         {
             IdEvento = evento.IdEvento,
@@ -143,11 +148,12 @@ public class EventosController : Controller
 
         if (!ModelState.IsValid)
         {
-            await CargarCampanasAsync();
+            ViewBag.NombreCampanaActual = HttpContext.Session.GetString("NombreCampanaActual");
             return View(modelo);
         }
 
-        var evento = await _db.OprEventos.FirstOrDefaultAsync(e => e.IdEvento == id);
+        var idCampanaActual = ObtenerIdCampanaActual();
+        var evento = await _db.OprEventos.FirstOrDefaultAsync(e => e.IdEvento == id && e.IdCampana == idCampanaActual);
         if (evento is null)
         {
             return NotFound();
@@ -158,7 +164,6 @@ public class EventosController : Controller
         evento.Descripcion = modelo.Descripcion;
         evento.Fecha = modelo.Fecha;
         evento.Hora = modelo.Hora;
-        evento.IdCampana = modelo.IdCampana;
         evento.IdUbicacion = ubicacion.IdUbicacion;
         evento.Lugar = modelo.Lugar;
         evento.CostoEstimado = modelo.CostoEstimado;
@@ -171,10 +176,11 @@ public class EventosController : Controller
     // GET: /Eventos/Delete/5
     public async Task<IActionResult> Delete(int id)
     {
+        var idCampanaActual = ObtenerIdCampanaActual();
         var evento = await _db.OprEventos
             .Include(e => e.Campana)
             .Include(e => e.Ubicacion)
-            .FirstOrDefaultAsync(e => e.IdEvento == id);
+            .FirstOrDefaultAsync(e => e.IdEvento == id && e.IdCampana == idCampanaActual);
 
         if (evento is null)
         {
@@ -189,7 +195,8 @@ public class EventosController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
-        var evento = await _db.OprEventos.FindAsync(id);
+        var idCampanaActual = ObtenerIdCampanaActual();
+        var evento = await _db.OprEventos.FirstOrDefaultAsync(e => e.IdEvento == id && e.IdCampana == idCampanaActual);
         if (evento is not null)
         {
             _db.OprEventos.Remove(evento);
@@ -199,12 +206,9 @@ public class EventosController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    private async Task CargarCampanasAsync()
-    {
-        ViewBag.Campanas = await _db.CatCampanas
-            .OrderByDescending(c => c.Anio).ThenBy(c => c.Mes)
-            .ToListAsync();
-    }
+    // El middleware global en Program.cs ya garantiza que cualquier usuario
+    // autenticado que llegue hasta aquí tiene una campaña elegida en sesión.
+    private int ObtenerIdCampanaActual() => HttpContext.Session.GetInt32("IdCampanaActual") ?? 0;
 
     private async Task<CatUbicacion> ObtenerOCrearUbicacionAsync(EventoFormViewModel modelo)
     {

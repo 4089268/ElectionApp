@@ -65,6 +65,17 @@
                 <ul class="navbar-right__menu">
                     @if (User.Identity?.IsAuthenticated == true)
                     {
+                        var nombreCampanaActual = Context.Session.GetString("NombreCampanaActual");
+                        if (!string.IsNullOrEmpty(nombreCampanaActual))
+                        {
+                            <li class="nav-campana-actual d-flex align-items-center me-15">
+                                <a asp-controller="Campanas" asp-action="Seleccionar" class="d-flex align-items-center text-dark" title="Cambiar de campaña" style="gap:6px;">
+                                    <i class="uil uil-megaphone"></i>
+                                    <span class="fw-500">@nombreCampanaActual</span>
+                                    <i class="las la-angle-down fs-12"></i>
+                                </a>
+                            </li>
+                        }
                         <li class="nav-author">
                             <div class="dropdown-custom">
                                 <a href="javascript:;" class="nav-item-toggle">
@@ -121,12 +132,15 @@
                         <li class="menu-title mt-30">
                             <span>Campaña</span>
                         </li>
-                        <li class="@ActiveIf("Campanas")">
-                            <a asp-controller="Campanas" asp-action="Index">
-                                <span class="nav-icon uil uil-megaphone"></span>
-                                <span class="menu-text">Campañas</span>
-                            </a>
-                        </li>
+                        @if (User.IsInRole("Administrador"))
+                        {
+                            <li class="@ActiveIf("Campanas")">
+                                <a asp-controller="Campanas" asp-action="Index">
+                                    <span class="nav-icon uil uil-megaphone"></span>
+                                    <span class="menu-text">Campañas</span>
+                                </a>
+                            </li>
+                        }
                         <li class="@ActiveIf("Integrantes")">
                             <a asp-controller="Integrantes" asp-action="Index">
                                 <span class="nav-icon uil uil-users-alt"></span>
@@ -139,6 +153,18 @@
                                 <span class="menu-text">Eventos</span>
                             </a>
                         </li>
+                        @if (User.IsInRole("Administrador"))
+                        {
+                            <li class="menu-title mt-30">
+                                <span>Sistema</span>
+                            </li>
+                            <li class="@ActiveIf("Usuarios")">
+                                <a asp-controller="Usuarios" asp-action="Index">
+                                    <span class="nav-icon uil uil-shield-check"></span>
+                                    <span class="menu-text">Usuarios</span>
+                                </a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>
@@ -156,19 +182,6 @@
             </div>
         </div>
 
-        <footer class="footer-wrapper">
-            <div class="footer-wrapper__inside">
-                <div class="container-fluid">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="footer-copyright">
-                                <p><span>&copy; @DateTime.Now.Year</span> ElectionApp</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </footer>
     </main>
 
     <div id="overlayer">

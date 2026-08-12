@@ -18,14 +18,45 @@ public class HomeController : Controller
 
     public async Task<IActionResult> Index()
     {
-        ViewBag.TotalIntegrantes = await _db.CatIntegrantes.CountAsync();
-        ViewBag.TotalEventos = await _db.OprEventos.CountAsync();
+        var idCampanaActual = HttpContext.Session.GetInt32("IdCampanaActual") ?? 0;
+
+        ViewBag.TotalIntegrantes = await _db.CatIntegranteCampanas.CountAsync(a => a.IdCampana == idCampanaActual);
+        ViewBag.TotalEventos = await _db.OprEventos.CountAsync(e => e.IdCampana == idCampanaActual);
         ViewBag.TotalCampanas = await _db.CatCampanas.CountAsync();
 
-        var eventosConUbicacion = await _db.OprEventos
+        var eventosCampana = await _db.OprEventos
             .Include(e => e.Ubicacion)
-            .Where(e => e.Ubicacion.Latitud != null && e.Ubicacion.Longitud != null)
+            .Where(e => e.IdCampana == idCampanaActual)
+            .OrderBy(e => e.Fecha).ThenBy(e => e.Hora)
             .ToListAsync();
+
+        // ---------- Resumen de gastos (costo estimado vs. real de los eventos) ----------
+        ViewBag.TotalCostoEstimado = eventosCampana.Sum(e => e.CostoEstimado ?? 0);
+        ViewBag.TotalCostoReal = eventosCampana.Sum(e => e.CostoReal ?? 0);
+
+        // ---------- Resumen de simpatizantes (afiliados a la campaña actual, por rol) ----------
+        var resumenRoles = await _db.CatIntegranteCampanas
+            .Where(a => a.IdCampana == idCampanaActual)
+            .GroupBy(a => a.Rol.Descripcion)
+            .Select(g => new { Rol = g.Key, Total = g.Count() })
+            .OrderByDescending(g => g.Total)
+            .ToListAsync();
+        ViewBag.ResumenRoles = resumenRoles;
+        ViewBag.TotalAfiliados = resumenRoles.Sum(g => g.Total);
+
+        // ---------- Calendario de próximos eventos ----------
+        var eventosCalendario = eventosCampana.Select(e => new
+        {
+            title = e.Descripcion,
+            start = e.Fecha.ToDateTime(e.Hora).ToString("yyyy-MM-ddTHH:mm:ss"),
+            lugar = e.Lugar,
+        });
+        ViewBag.EventosCalendarioJson = JsonSerializer.Serialize(eventosCalendario);
+
+        // ---------- Mapa de eventos ----------
+        var eventosConUbicacion = eventosCampana
+            .Where(e => e.Ubicacion.Latitud != null && e.Ubicacion.Longitud != null)
+            .ToList();
 
         var eventosMapa = eventosConUbicacion.Select(e => new
         {

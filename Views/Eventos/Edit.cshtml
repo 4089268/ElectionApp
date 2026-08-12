@@ -1,4 +1,3 @@
-@using Microsoft.AspNetCore.Mvc.Rendering
 @model ElectionApp.Models.Eventos.EventoFormViewModel
 @{
     ViewData["Title"] = "Editar evento";
@@ -33,11 +32,8 @@
                         </div>
                         <div class="col-md-4">
                             <div class="form-group mb-25">
-                                <label asp-for="IdCampana"></label>
-                                <select asp-for="IdCampana" class="form-control" asp-items="@(new SelectList(ViewBag.Campanas, "IdCampana", "Descripcion"))" required>
-                                    <option value="">-- Selecciona --</option>
-                                </select>
-                                <span asp-validation-for="IdCampana" class="text-danger"></span>
+                                <label>Campaña</label>
+                                <input class="form-control" value="@ViewBag.NombreCampanaActual" disabled />
                             </div>
                         </div>
 

@@ -7,5 +7,5 @@ public class CatRol
     public int IdRol { get; set; }
     public string Descripcion { get; set; } = string.Empty;
 
-    public ICollection<CatIntegrante> Integrantes { get; set; } = new List<CatIntegrante>();
+    public ICollection<CatIntegranteCampana> Afiliaciones { get; set; } = new List<CatIntegranteCampana>();
 }

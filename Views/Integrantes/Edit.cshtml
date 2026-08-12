@@ -1,4 +1,4 @@
-@model CatIntegrante
+@model ElectionApp.Models.Integrantes.IntegranteFormViewModel
 @{
     ViewData["Title"] = "Editar integrante";
 }
@@ -15,16 +15,37 @@
     <div class="col-lg-9">
         <div class="card mb-30">
             <div class="card-header border-bottom-0 p-sm-30">
-                <h5 class="fw-500">@Model.NombreCompleto</h5>
+                <h5 class="fw-500">@Model.Nombre @Model.ApellidoPaterno @Model.ApellidoMaterno</h5>
             </div>
             <div class="card-body pt-0 px-30 pb-35">
                 <form asp-action="Edit" asp-route-id="@Model.IdIntegrante" method="post">
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-15"></div>
                     <input type="hidden" asp-for="IdIntegrante" />
-                    <input type="hidden" asp-for="FechaRegistro" />
-                    <input type="hidden" asp-for="IdIntegranteSuperior" />
 
                     <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group mb-25">
+                                <label asp-for="Curp"></label>
+                                <input asp-for="Curp" class="form-control text-uppercase" maxlength="18" required />
+                                <span asp-validation-for="Curp" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-25">
+                                <label>Campaña</label>
+                                <input class="form-control" value="@ViewBag.NombreCampanaActual" disabled />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-25">
+                                <label asp-for="IdRol"></label>
+                                <select asp-for="IdRol" class="form-control" asp-items="@(new SelectList(ViewBag.Roles, "IdRol", "Descripcion"))" required>
+                                    <option value="">-- Selecciona --</option>
+                                </select>
+                                <span asp-validation-for="IdRol" class="text-danger"></span>
+                            </div>
+                        </div>
+
                         <div class="col-md-4">
                             <div class="form-group mb-25">
                                 <label asp-for="Nombre"></label>
@@ -101,23 +122,6 @@
                             <div class="form-group mb-25">
                                 <label asp-for="Facebook"></label>
                                 <input asp-for="Facebook" class="form-control" />
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="form-group mb-25">
-                                <label asp-for="IdRol">Rol</label>
-                                <select asp-for="IdRol" class="form-control" asp-items="@(new SelectList(ViewBag.Roles, "IdRol", "Descripcion"))" required>
-                                    <option value="">-- Selecciona --</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group mb-25">
-                                <label asp-for="IdCampana">Campaña</label>
-                                <select asp-for="IdCampana" class="form-control" asp-items="@(new SelectList(ViewBag.Campanas, "IdCampana", "Descripcion"))" required>
-                                    <option value="">-- Selecciona --</option>
-                                </select>
                             </div>
                         </div>
 

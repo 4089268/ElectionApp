@@ -65,27 +65,107 @@
 </div>
 
 <div class="row">
-    <div class="col-lg-12">
-        <div class="card mb-30">
+    <div class="col-lg-6 mb-25">
+        <div class="card h-100">
             <div class="card-header border-bottom-0 p-sm-30">
-                <h5 class="fw-500">Mapa de eventos</h5>
+                <h5 class="fw-500">Resumen de gastos</h5>
             </div>
             <div class="card-body pt-0 px-30 pb-35">
-                @if ((int)ViewBag.EventosConMapa == 0)
+                @{
+                    decimal totalEstimado = ViewBag.TotalCostoEstimado;
+                    decimal totalReal = ViewBag.TotalCostoReal;
+                    decimal diferencia = totalReal - totalEstimado;
+                }
+                <dl class="row mb-0">
+                    <dt class="col-sm-6">Costo estimado</dt>
+                    <dd class="col-sm-6 text-sm-end">@totalEstimado.ToString("C2")</dd>
+
+                    <dt class="col-sm-6">Costo real</dt>
+                    <dd class="col-sm-6 text-sm-end">@totalReal.ToString("C2")</dd>
+
+                    <dt class="col-sm-6">Diferencia</dt>
+                    <dd class="col-sm-6 text-sm-end @(diferencia > 0 ? "text-danger" : "text-success")">@diferencia.ToString("C2")</dd>
+                </dl>
+                <p class="mb-0 mt-15 text-muted">Suma del costo estimado/real capturado en los eventos de esta campaña.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6 mb-25">
+        <div class="card h-100">
+            <div class="card-header border-bottom-0 p-sm-30">
+                <h5 class="fw-500">Resumen de simpatizantes</h5>
+            </div>
+            <div class="card-body pt-0 px-30 pb-35">
+                @if (ViewBag.ResumenRoles.Count > 0)
                 {
-                    <p class="mb-0">Todavía no hay eventos con ubicación geolocalizada.</p>
+                    <dl class="row mb-0">
+                        @foreach (var item in ViewBag.ResumenRoles)
+                        {
+                            <dt class="col-sm-8">@item.Rol</dt>
+                            <dd class="col-sm-4 text-sm-end">@item.Total</dd>
+                        }
+                    </dl>
+                    <hr class="my-15" />
+                    <div class="d-flex justify-content-between fw-500">
+                        <span>Total afiliados</span>
+                        <span>@ViewBag.TotalAfiliados</span>
+                    </div>
                 }
                 else
                 {
-                    <div id="mapa-eventos" style="height: 420px;"></div>
+                    <p class="mb-0">Todavía no hay integrantes afiliados a esta campaña.</p>
                 }
             </div>
         </div>
     </div>
 </div>
 
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card mb-30">
+            <div class="card-header border-bottom-0 p-sm-30">
+                <h5 class="fw-500">Próximos eventos</h5>
+            </div>
+            <div class="card-body pt-0 px-30 pb-35">
+                <div id="calendario-eventos"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <h5 class="fw-500 mb-15">Mapa de eventos</h5>
+        @if ((int)ViewBag.EventosConMapa == 0)
+        {
+            <p class="mb-30">Todavía no hay eventos con ubicación geolocalizada.</p>
+        }
+        else
+        {
+            <div id="mapa-eventos" class="radius-xl mb-30" style="height: 75vh; min-height: 550px;"></div>
+        }
+    </div>
+</div>
+
 @section Scripts {
     <script>
+        (function () {
+            var eventos = @Html.Raw(ViewBag.EventosCalendarioJson ?? "[]");
+            var contenedor = document.getElementById('calendario-eventos');
+            if (!contenedor) {
+                return;
+            }
+
+            var calendario = new FullCalendar.Calendar(contenedor, {
+                initialView: 'dayGridMonth',
+                height: 'auto',
+                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,listMonth' },
+                buttonText: { today: 'Hoy', month: 'Mes', list: 'Lista' },
+                events: eventos
+            });
+            calendario.render();
+        })();
+
         (function () {
             var eventos = @Html.Raw(ViewBag.EventosMapaJson ?? "[]");
             var contenedor = document.getElementById('mapa-eventos');
@@ -93,7 +173,7 @@
                 return;
             }
 
-            var mapa = L.map(contenedor).setView([eventos[0].lat, eventos[0].lng], 5);
+            var mapa = L.map(contenedor).setView([eventos[0].lat, eventos[0].lng], 9);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 18,
                 attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
@@ -112,7 +192,7 @@
             });
 
             if (eventos.length > 1) {
-                mapa.fitBounds(grupo.getBounds().pad(0.2));
+                mapa.fitBounds(grupo.getBounds().pad(0.2), { maxZoom: 10 });
             }
         })();
     </script>

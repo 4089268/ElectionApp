@@ -1,0 +1,84 @@
+@model IEnumerable<Usuario>
+@{
+    ViewData["Title"] = "Usuarios";
+}
+
+<div class="breadcrumb-main user-member justify-content-sm-between">
+    <div class="d-flex flex-wrap justify-content-center breadcrumb-main__wrapper">
+        <div class="d-flex align-items-center user-member__title justify-content-center me-sm-25">
+            <h4 class="text-capitalize fw-500 breadcrumb-title">Usuarios</h4>
+            <span class="sub-title ms-sm-25 ps-sm-25">@Model.Count() en total</span>
+        </div>
+        <form method="get" class="d-flex align-items-center user-member__form my-sm-0 my-2">
+            <img src="~/theme/img/svg/search.svg" alt="search" class="svg">
+            <input type="text" name="filtro" value="@ViewBag.Filtro" class="form-control me-sm-2 border-0 box-shadow-none" placeholder="Buscar por usuario o correo">
+        </form>
+    </div>
+    <div class="action-btn">
+        <a asp-action="Create" class="btn px-15 btn-primary">
+            <i class="las la-plus fs-16"></i> Nuevo usuario</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100 mb-30">
+            <div class="table-responsive">
+                <table class="table mb-0 table-borderless">
+                    <thead>
+                        <tr class="userDatatable-header">
+                            <th><span class="userDatatable-title">Usuario</span></th>
+                            <th><span class="userDatatable-title">Correo</span></th>
+                            <th><span class="userDatatable-title">Rol de acceso</span></th>
+                            <th><span class="userDatatable-title">Integrante vinculado</span></th>
+                            <th><span class="userDatatable-title">Estado</span></th>
+                            <th><span class="userDatatable-title">Último acceso</span></th>
+                            <th><span class="userDatatable-title float-end">Acciones</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var usuario in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="userDatatable-inline-title">
+                                        <a asp-action="Edit" asp-route-id="@usuario.IdUsuario" class="text-dark fw-500">
+                                            <h6>@usuario.UsuarioNombre</h6>
+                                        </a>
+                                    </div>
+                                </td>
+                                <td><div class="userDatatable-content">@usuario.Correo</div></td>
+                                <td><div class="userDatatable-content">@usuario.RolApp.Descripcion</div></td>
+                                <td><div class="userDatatable-content">@usuario.Integrante?.NombreCompleto</div></td>
+                                <td>
+                                    @if (usuario.Activo)
+                                    {
+                                        <span class="badge bg-success">Activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-light-danger">Inactivo</span>
+                                    }
+                                    @if (usuario.FechaBloqueo is not null)
+                                    {
+                                        <span class="badge bg-light-danger ms-5">Bloqueado</span>
+                                    }
+                                </td>
+                                <td><div class="userDatatable-content">@(usuario.UltimoAcceso?.ToString("dd/MM/yyyy HH:mm"))</div></td>
+                                <td>
+                                    <ul class="orderDatatable_actions mb-0 d-flex flex-wrap justify-content-end">
+                                        <li>
+                                            <a asp-action="Edit" asp-route-id="@usuario.IdUsuario" class="edit">
+                                                <i class="uil uil-edit"></i>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

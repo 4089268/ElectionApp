@@ -10,6 +10,7 @@ public class Usuario
     public string? Correo { get; set; }
     public byte[] PasswordHash { get; set; } = Array.Empty<byte>();
     public int IdRolApp { get; set; }
+    public int? IdCampanaActual { get; set; } // ultima campaña con la que trabajó; se recarga sola al iniciar sesión
     public bool Activo { get; set; } = true;
     public DateTime FechaCreacion { get; set; } = DateTime.Now;
     public DateTime? UltimoAcceso { get; set; }
@@ -18,4 +19,5 @@ public class Usuario
 
     [ValidateNever] public CatIntegrante? Integrante { get; set; }
     [ValidateNever] public RolAplicacion RolApp { get; set; } = null!;
+    [ValidateNever] public CatCampana? CampanaActual { get; set; }
 }

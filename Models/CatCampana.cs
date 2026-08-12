@@ -32,6 +32,6 @@ public class CatCampana
     [Display(Name = "Mes")]
     public byte Mes { get; set; }
 
-    [ValidateNever] public ICollection<CatIntegrante> Integrantes { get; set; } = new List<CatIntegrante>();
+    [ValidateNever] public ICollection<CatIntegranteCampana> Afiliaciones { get; set; } = new List<CatIntegranteCampana>();
     [ValidateNever] public ICollection<OprEvento> Eventos { get; set; } = new List<OprEvento>();
 }

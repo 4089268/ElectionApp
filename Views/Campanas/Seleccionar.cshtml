@@ -1,0 +1,61 @@
+@model IEnumerable<CatCampana>
+@{
+    ViewData["Title"] = "Elegir campaña";
+    string[] meses = { "", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre" };
+    int? idCampanaActual = ViewBag.IdCampanaActual as int?;
+}
+
+<div class="breadcrumb-main">
+    <div class="d-flex flex-wrap justify-content-center breadcrumb-main__wrapper">
+        <div class="d-flex align-items-center">
+            <h4 class="text-capitalize fw-500 breadcrumb-title">¿Con qué campaña quieres trabajar?</h4>
+        </div>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card mb-30">
+                <div class="card-body p-sm-30">
+                    <p class="mb-15">Todavía no hay campañas registradas.</p>
+                    <a asp-controller="Campanas" asp-action="Create" class="btn btn-primary btn-default btn-squared px-30">Crear la primera campaña</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row">
+        @foreach (var campana in Model)
+        {
+            var esActual = idCampanaActual == campana.IdCampana;
+            <div class="col-xxl-4 col-sm-6 mb-25">
+                <div class="card h-100 @(esActual ? "border border-primary" : "")">
+                    <div class="card-body p-sm-30 d-flex flex-column">
+                        <h5 class="fw-500 mb-10">
+                            @campana.Descripcion
+                            @if (esActual)
+                            {
+                                <span class="badge bg-primary ms-5">Actual</span>
+                            }
+                        </h5>
+                        <p class="mb-5"><strong>Político:</strong> @campana.Politico</p>
+                        <p class="mb-5"><strong>Puesto:</strong> @campana.Puesto</p>
+                        <p class="mb-20"><strong>Periodo:</strong> @meses[campana.Mes] @campana.Anio</p>
+
+                        <form asp-action="Establecer" method="post" class="mt-auto">
+                            <input type="hidden" name="idCampana" value="@campana.IdCampana">
+                            <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl">
+                            <button type="submit" class="btn btn-default btn-squared w-100 @(esActual ? "btn-light" : "btn-primary")">
+                                @(esActual ? "Seguir aquí" : "Trabajar con esta campaña")
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
