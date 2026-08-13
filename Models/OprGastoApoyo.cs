@@ -27,4 +27,5 @@ public class OprGastoApoyo
     [ValidateNever] public CatIntegranteCampana? IntegranteCampana { get; set; }
     [ValidateNever] public OprEvento? Evento { get; set; }
     [ValidateNever] public Usuario UsuarioRegistro { get; set; } = null!;
+    [ValidateNever] public ICollection<OprDocumento> Documentos { get; set; } = new List<OprDocumento>();
 }

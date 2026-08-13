@@ -22,6 +22,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Election2")));
 
 builder.Services.AddScoped<PasswordService>();
+builder.Services.AddScoped<DocumentoService>();
 builder.Services.AddHttpClient();
 
 // Sesion en memoria: aqui se guarda la campaña con la que esta trabajando

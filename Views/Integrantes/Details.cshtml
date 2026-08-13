@@ -99,6 +99,7 @@
                                     <th><span class="userDatatable-title">Evento</span></th>
                                     <th><span class="userDatatable-title">Fecha</span></th>
                                     <th><span class="userDatatable-title">Registrado por</span></th>
+                                    <th><span class="userDatatable-title">Evidencia</span></th>
                                     <th></th>
                                 </tr>
                             </thead>
@@ -113,6 +114,18 @@
                                         <td><div class="userDatatable-content">@(gasto.Evento?.Descripcion ?? "—")</div></td>
                                         <td><div class="userDatatable-content">@gasto.FechaRegistro.ToString("dd/MM/yyyy HH:mm")</div></td>
                                         <td><div class="userDatatable-content">@gasto.UsuarioRegistro.UsuarioNombre</div></td>
+                                        <td>
+                                            @if (gasto.Documentos.Any())
+                                            {
+                                                <a asp-controller="Documentos" asp-action="Descargar" asp-route-id="@gasto.Documentos.First().IdDocumento" target="_blank" title="Ver evidencia">
+                                                    <i class="uil uil-paperclip"></i> @gasto.Documentos.Count()
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">—</span>
+                                            }
+                                        </td>
                                         <td class="text-end">
                                             <form asp-controller="GastosApoyo" asp-action="Delete" asp-route-id="@gasto.IdGastoApoyo" method="post" onsubmit="return confirm('¿Eliminar este apoyo?');">
                                                 <button type="submit" class="btn btn-sm btn-outline-danger">
@@ -131,7 +144,7 @@
                     <p class="mb-20">Todavía no se han registrado apoyos para esta persona en esta campaña.</p>
                 }
 
-                <form asp-controller="GastosApoyo" asp-action="Create" method="post">
+                <form asp-controller="GastosApoyo" asp-action="Create" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="idIntegranteCampana" value="@Model.IdIntegranteCampana" />
                     <div class="row align-items-end">
                         <div class="col-md-3">
@@ -172,6 +185,24 @@
                         </div>
                         <div class="col-md-1 mt-15">
                             <button type="submit" class="btn btn-primary btn-default btn-squared w-100">Registrar</button>
+                        </div>
+                        <div class="col-md-6 mt-15">
+                            <div class="form-group mb-15 mb-md-0">
+                                <label>Evidencia (opcional)</label>
+                                <input type="file" name="evidencia" class="form-control" accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx" />
+                            </div>
+                        </div>
+                        <div class="col-md-6 mt-15">
+                            <div class="form-group mb-15 mb-md-0">
+                                <label>Tipo de evidencia</label>
+                                <select name="idTipoDocumento" class="form-control">
+                                    <option value="">— (solo si adjuntas archivo)</option>
+                                    @foreach (var tipo in ViewBag.TiposDocumento)
+                                    {
+                                        <option value="@tipo.IdTipoDocumento">@tipo.Descripcion</option>
+                                    }
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </form>

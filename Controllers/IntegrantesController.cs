@@ -104,6 +104,7 @@ public class IntegrantesController : Controller
             .Include(a => a.Rol)
             .Include(a => a.GastosApoyo).ThenInclude(g => g.UsuarioRegistro)
             .Include(a => a.GastosApoyo).ThenInclude(g => g.Evento)
+            .Include(a => a.GastosApoyo).ThenInclude(g => g.Documentos)
             .FirstOrDefaultAsync(a => a.IdIntegrante == id && a.IdCampana == idCampanaActual);
 
         if (afiliacion is null)
@@ -116,6 +117,8 @@ public class IntegrantesController : Controller
             .OrderByDescending(e => e.Fecha)
             .Select(e => new { e.IdEvento, e.Descripcion })
             .ToListAsync();
+
+        ViewBag.TiposDocumento = await _db.CatTiposDocumento.OrderBy(t => t.Descripcion).ToListAsync();
 
         return View(afiliacion);
     }

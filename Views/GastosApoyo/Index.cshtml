@@ -30,7 +30,7 @@
                     <div class="alert alert-danger mb-15">@TempData["GastoError"]</div>
                 }
 
-                <form asp-controller="GastosApoyo" asp-action="Create" method="post">
+                <form asp-controller="GastosApoyo" asp-action="Create" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="returnUrl" value="@Url.Action("Index", new { filtro = ViewBag.Filtro })" />
                     <div class="row align-items-end">
                         <div class="col-md-3">
@@ -81,8 +81,26 @@
                                 <input type="text" class="form-control gasto-total" value="$0.00" disabled />
                             </div>
                         </div>
-                        <div class="col-md-12 mt-15">
-                            <button type="submit" class="btn btn-primary btn-default btn-squared px-30">Registrar apoyo</button>
+                        <div class="col-md-4 mt-15">
+                            <div class="form-group mb-15 mb-md-0">
+                                <label>Evidencia (opcional)</label>
+                                <input type="file" name="evidencia" class="form-control" accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx" />
+                            </div>
+                        </div>
+                        <div class="col-md-4 mt-15">
+                            <div class="form-group mb-15 mb-md-0">
+                                <label>Tipo de evidencia</label>
+                                <select name="idTipoDocumento" class="form-control">
+                                    <option value="">— (solo si adjuntas archivo)</option>
+                                    @foreach (var tipo in ViewBag.TiposDocumento)
+                                    {
+                                        <option value="@tipo.IdTipoDocumento">@tipo.Descripcion</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mt-15">
+                            <button type="submit" class="btn btn-primary btn-default btn-squared w-100">Registrar apoyo</button>
                         </div>
                     </div>
                 </form>
@@ -106,6 +124,7 @@
                             <th><span class="userDatatable-title text-end">Total</span></th>
                             <th><span class="userDatatable-title">Fecha</span></th>
                             <th><span class="userDatatable-title">Registrado por</span></th>
+                            <th><span class="userDatatable-title">Evidencia</span></th>
                             <th></th>
                         </tr>
                     </thead>
@@ -134,6 +153,18 @@
                                 <td class="text-end"><div class="userDatatable-content">@gasto.Monto.ToString("C2")</div></td>
                                 <td><div class="userDatatable-content">@gasto.FechaRegistro.ToString("dd/MM/yyyy HH:mm")</div></td>
                                 <td><div class="userDatatable-content">@gasto.UsuarioRegistro.UsuarioNombre</div></td>
+                                <td>
+                                    @if (gasto.Documentos.Any())
+                                    {
+                                        <a asp-controller="Documentos" asp-action="Descargar" asp-route-id="@gasto.Documentos.First().IdDocumento" target="_blank" title="Ver evidencia">
+                                            <i class="uil uil-paperclip"></i> @gasto.Documentos.Count()
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
                                 <td>
                                     <form asp-controller="GastosApoyo" asp-action="Delete" asp-route-id="@gasto.IdGastoApoyo" method="post" onsubmit="return confirm('¿Eliminar este apoyo?');">
                                         <input type="hidden" name="returnUrl" value="@Url.Action("Index", new { filtro = ViewBag.Filtro })" />

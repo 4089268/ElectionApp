@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using ElectionApp.Data;
 using ElectionApp.Models;
+using ElectionApp.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,13 +16,19 @@ namespace ElectionApp.Controllers;
 // (por eso Create/Delete aceptan un returnUrl opcional: vuelven a donde se
 // llamaron). Separado a propósito de GastosEventoController: son dos
 // rubros distintos de la contabilidad de la campaña.
+// Al registrar un apoyo se puede adjuntar evidencia (foto/documento) de
+// una vez: Create usa DocumentoService (mismo que DocumentosController)
+// para guardarla como Opr_Documentos ligado a este gasto (IdGastoApoyo),
+// así aparece automáticamente en /Documentos.
 public class GastosApoyoController : Controller
 {
     private readonly ApplicationDbContext _db;
+    private readonly DocumentoService _documentos;
 
-    public GastosApoyoController(ApplicationDbContext db)
+    public GastosApoyoController(ApplicationDbContext db, DocumentoService documentos)
     {
         _db = db;
+        _documentos = documentos;
     }
 
     // GET: /GastosApoyo
@@ -32,6 +39,7 @@ public class GastosApoyoController : Controller
             .Include(g => g.IntegranteCampana).ThenInclude(a => a!.Integrante)
             .Include(g => g.Evento)
             .Include(g => g.UsuarioRegistro)
+            .Include(g => g.Documentos)
             .Where(g => g.IdCampana == idCampanaActual)
             .AsQueryable();
 
@@ -67,13 +75,18 @@ public class GastosApoyoController : Controller
             .Select(e => new { e.IdEvento, e.Descripcion })
             .ToListAsync();
 
+        ViewBag.TiposDocumento = await _db.CatTiposDocumento.OrderBy(t => t.Descripcion).ToListAsync();
+
         return View(lista);
     }
 
     // POST: /GastosApoyo/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(int? idIntegranteCampana, int? idEvento, string concepto, decimal costoUnitario, int cantidad, string? returnUrl = null)
+    [RequestSizeLimit(DocumentoService.TamanoMaximoBytes + 1024)]
+    public async Task<IActionResult> Create(
+        int? idIntegranteCampana, int? idEvento, string concepto, decimal costoUnitario, int cantidad,
+        IFormFile? evidencia, int? idTipoDocumento, string? returnUrl = null)
     {
         var idCampanaActual = ObtenerIdCampanaActual();
 
@@ -95,7 +108,29 @@ public class GastosApoyoController : Controller
             return await Redirigir(returnUrl, idIntegranteCampana);
         }
 
-        _db.OprGastosApoyo.Add(new OprGastoApoyo
+        var hayEvidencia = evidencia is not null && evidencia.Length > 0;
+        if (hayEvidencia)
+        {
+            if (!idTipoDocumento.HasValue)
+            {
+                TempData["GastoError"] = "Selecciona el tipo de documento de la evidencia que adjuntaste.";
+                return await Redirigir(returnUrl, idIntegranteCampana);
+            }
+
+            var errorArchivo = _documentos.Validar(evidencia!);
+            if (errorArchivo is not null)
+            {
+                TempData["GastoError"] = errorArchivo;
+                return await Redirigir(returnUrl, idIntegranteCampana);
+            }
+
+            if (!await _db.CatTiposDocumento.AnyAsync(t => t.IdTipoDocumento == idTipoDocumento.Value))
+            {
+                return NotFound();
+            }
+        }
+
+        var gasto = new OprGastoApoyo
         {
             IdCampana = idCampanaActual,
             IdIntegranteCampana = idIntegranteCampana,
@@ -105,8 +140,18 @@ public class GastosApoyoController : Controller
             Cantidad = cantidad,
             Monto = costoUnitario * cantidad,
             IdUsuarioRegistro = ObtenerIdUsuarioActual(),
-        });
+        };
+        _db.OprGastosApoyo.Add(gasto);
         await _db.SaveChangesAsync();
+
+        if (hayEvidencia)
+        {
+            var documento = await _documentos.GuardarAsync(
+                evidencia!, idCampanaActual, idTipoDocumento!.Value, gasto.IdUsuarioRegistro,
+                idEvento: idEvento, idGastoApoyo: gasto.IdGastoApoyo);
+            _db.OprDocumentos.Add(documento);
+            await _db.SaveChangesAsync();
+        }
 
         return await Redirigir(returnUrl, idIntegranteCampana);
     }

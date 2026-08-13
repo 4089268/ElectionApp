@@ -24,6 +24,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<OprEventoParticipante> OprEventoParticipantes => Set<OprEventoParticipante>();
     public DbSet<OprGastoEvento> OprGastosEvento => Set<OprGastoEvento>();
     public DbSet<OprGastoApoyo> OprGastosApoyo => Set<OprGastoApoyo>();
+    public DbSet<CatTipoDocumento> CatTiposDocumento => Set<CatTipoDocumento>();
+    public DbSet<OprDocumento> OprDocumentos => Set<OprDocumento>();
     public DbSet<RolAplicacion> RolesAplicacion => Set<RolAplicacion>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();
 
@@ -228,6 +230,48 @@ public class ApplicationDbContext : DbContext
                 .HasForeignKey(x => x.IdIntegranteCampana).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.Evento).WithMany()
                 .HasForeignKey(x => x.IdEvento).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.UsuarioRegistro).WithMany()
+                .HasForeignKey(x => x.IdUsuarioRegistro).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ---------- dbo.Cat_Tipos_Documento ----------
+        modelBuilder.Entity<CatTipoDocumento>(e =>
+        {
+            e.ToTable("Cat_Tipos_Documento", "dbo");
+            e.HasKey(x => x.IdTipoDocumento);
+            e.Property(x => x.IdTipoDocumento).HasColumnName("id_tipo_documento");
+            e.Property(x => x.Descripcion).HasColumnName("descripcion").HasMaxLength(100).IsRequired();
+        });
+
+        // ---------- dbo.Opr_Documentos ----------
+        modelBuilder.Entity<OprDocumento>(e =>
+        {
+            e.ToTable("Opr_Documentos", "dbo");
+            e.HasKey(x => x.IdDocumento);
+            e.Property(x => x.IdDocumento).HasColumnName("id_documento");
+            e.Property(x => x.IdCampana).HasColumnName("id_campaña");
+            e.Property(x => x.IdEvento).HasColumnName("id_evento");
+            e.Property(x => x.IdGasto).HasColumnName("id_gasto");
+            e.Property(x => x.IdGastoApoyo).HasColumnName("id_gasto_apoyo");
+            e.Property(x => x.IdTipoDocumento).HasColumnName("id_tipo_documento");
+            e.Property(x => x.NombreArchivo).HasColumnName("nombre_archivo").HasMaxLength(255).IsRequired();
+            e.Property(x => x.RutaArchivo).HasColumnName("ruta_archivo").HasMaxLength(500).IsRequired();
+            e.Property(x => x.ContentType).HasColumnName("content_type").HasMaxLength(100).IsRequired();
+            e.Property(x => x.TamanoBytes).HasColumnName("tamaño_bytes");
+            e.Property(x => x.Descripcion).HasColumnName("descripcion").HasMaxLength(255);
+            e.Property(x => x.FechaRegistro).HasColumnName("fecha_registro");
+            e.Property(x => x.IdUsuarioRegistro).HasColumnName("id_usuario_registro");
+
+            e.HasOne(x => x.Campana).WithMany()
+                .HasForeignKey(x => x.IdCampana).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Evento).WithMany()
+                .HasForeignKey(x => x.IdEvento).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Gasto).WithMany()
+                .HasForeignKey(x => x.IdGasto).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.GastoApoyo).WithMany(x => x.Documentos)
+                .HasForeignKey(x => x.IdGastoApoyo).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.TipoDocumento).WithMany()
+                .HasForeignKey(x => x.IdTipoDocumento).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.UsuarioRegistro).WithMany()
                 .HasForeignKey(x => x.IdUsuarioRegistro).OnDelete(DeleteBehavior.Restrict);
         });

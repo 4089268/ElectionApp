@@ -1,0 +1,202 @@
+@model IEnumerable<OprDocumento>
+@{
+    ViewData["Title"] = "Documentos y evidencia";
+
+    string IconoPara(OprDocumento doc)
+    {
+        if (doc.ContentType.StartsWith("image/")) return "uil-image-v";
+        if (doc.ContentType == "application/pdf") return "uil-file-alt";
+        if (doc.ContentType.Contains("word")) return "uil-file-medical-alt";
+        if (doc.ContentType.Contains("excel") || doc.ContentType.Contains("sheet")) return "uil-file-bookmark-alt";
+        return "uil-file-landscape-alt";
+    }
+
+    string EtiquetaRelacion(OprDocumento doc)
+    {
+        var partes = new List<string>();
+        if (doc.Evento is not null) partes.Add("Evento: " + doc.Evento.Descripcion);
+        if (doc.Gasto is not null) partes.Add("Gasto: " + doc.Gasto.Concepto);
+        if (doc.GastoApoyo is not null) partes.Add("Apoyo: " + doc.GastoApoyo.Concepto);
+        return partes.Count > 0 ? string.Join(" · ", partes) : "— (evidencia general de campaña)";
+    }
+
+    string FormatoTamano(long bytes)
+    {
+        if (bytes >= 1024 * 1024) return (bytes / (1024m * 1024m)).ToString("0.0") + " MB";
+        return (bytes / 1024m).ToString("0.0") + " KB";
+    }
+}
+
+<div class="breadcrumb-main user-member justify-content-sm-between">
+    <div class="d-flex flex-wrap justify-content-center breadcrumb-main__wrapper">
+        <div class="d-flex align-items-center user-member__title justify-content-center me-sm-25">
+            <h4 class="text-capitalize fw-500 breadcrumb-title">Documentos y evidencia</h4>
+            <span class="sub-title ms-sm-25 ps-sm-25">@Model.Count() en total</span>
+        </div>
+        <form method="get" class="d-flex align-items-center user-member__form my-sm-0 my-2">
+            <img src="~/theme/img/svg/search.svg" alt="search" class="svg">
+            <input type="text" name="filtro" value="@ViewBag.Filtro" class="form-control me-sm-2 border-0 box-shadow-none" placeholder="Buscar por nombre, evento o descripción">
+            <select name="idTipoDocumento" class="form-control border-0 box-shadow-none" style="max-width: 180px;" onchange="this.form.submit()">
+                <option value="">Todos los tipos</option>
+                @foreach (var tipo in ViewBag.TiposDocumento)
+                {
+                    <option value="@tipo.IdTipoDocumento" selected="@(ViewBag.IdTipoDocumento == tipo.IdTipoDocumento)">@tipo.Descripcion</option>
+                }
+            </select>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card mb-30">
+            <div class="card-header border-bottom-0 p-sm-30">
+                <h5 class="fw-500">Subir documento</h5>
+            </div>
+            <div class="card-body pt-0 px-30 pb-35">
+                <p class="text-muted mb-20">El evento, el gasto y el apoyo son opcionales: un documento puede ser evidencia general de la campaña.</p>
+
+                @if (TempData["DocumentoError"] is not null)
+                {
+                    <div class="alert alert-danger mb-15">@TempData["DocumentoError"]</div>
+                }
+
+                <form asp-controller="Documentos" asp-action="Create" method="post" enctype="multipart/form-data">
+                    <div class="row align-items-end">
+                        <div class="col-md-3">
+                            <div class="form-group mb-15 mb-md-0">
+                                <label>Archivo</label>
+                                <input type="file" name="archivo" class="form-control" required accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group mb-15 mb-md-0">
+                                <label>Tipo de documento</label>
+                                <select name="idTipoDocumento" class="form-control" required>
+                                    @foreach (var tipo in ViewBag.TiposDocumento)
+                                    {
+                                        <option value="@tipo.IdTipoDocumento">@tipo.Descripcion</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group mb-15 mb-md-0">
+                                <label>Descripción (opcional)</label>
+                                <input type="text" name="descripcion" class="form-control" placeholder="Nota breve..." />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-15 mb-md-0">
+                                <label>Relacionar con (opcional, elige a lo más uno)</label>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <select name="idEvento" class="form-control select2-relacion">
+                                            <option value="">Evento...</option>
+                                            @foreach (var evento in ViewBag.Eventos)
+                                            {
+                                                <option value="@evento.IdEvento">@evento.Descripcion</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-4">
+                                        <select name="idGasto" class="form-control select2-relacion">
+                                            <option value="">Gasto evento...</option>
+                                            @foreach (var gasto in ViewBag.GastosEvento)
+                                            {
+                                                <option value="@gasto.IdGasto">@gasto.Concepto</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-4">
+                                        <select name="idGastoApoyo" class="form-control select2-relacion">
+                                            <option value="">Apoyo...</option>
+                                            @foreach (var gasto in ViewBag.GastosApoyo)
+                                            {
+                                                <option value="@gasto.IdGastoApoyo">@gasto.Concepto</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12 mt-15">
+                            <button type="submit" class="btn btn-primary btn-default btn-squared px-30">Subir documento</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100 mb-30">
+            <div class="table-responsive">
+                <table class="table mb-0 table-borderless">
+                    <thead>
+                        <tr class="userDatatable-header">
+                            <th></th>
+                            <th><span class="userDatatable-title">Archivo</span></th>
+                            <th><span class="userDatatable-title">Tipo</span></th>
+                            <th><span class="userDatatable-title">Relacionado con</span></th>
+                            <th><span class="userDatatable-title">Descripción</span></th>
+                            <th><span class="userDatatable-title">Tamaño</span></th>
+                            <th><span class="userDatatable-title">Fecha</span></th>
+                            <th><span class="userDatatable-title">Subido por</span></th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var doc in Model)
+                        {
+                            <tr>
+                                <td style="width: 56px;">
+                                    <a asp-action="Descargar" asp-route-id="@doc.IdDocumento" target="_blank">
+                                        @if (doc.ContentType.StartsWith("image/"))
+                                        {
+                                            <img src="@Url.Action("Descargar", new { id = doc.IdDocumento })" alt="@doc.NombreArchivo" style="width:44px;height:44px;object-fit:cover;border-radius:6px;" />
+                                        }
+                                        else
+                                        {
+                                            <i class="uil @IconoPara(doc)" style="font-size: 28px;"></i>
+                                        }
+                                    </a>
+                                </td>
+                                <td>
+                                    <div class="userDatatable-inline-title">
+                                        <a asp-action="Descargar" asp-route-id="@doc.IdDocumento" target="_blank" class="text-dark fw-500">@doc.NombreArchivo</a>
+                                    </div>
+                                </td>
+                                <td><div class="userDatatable-content">@doc.TipoDocumento.Descripcion</div></td>
+                                <td><div class="userDatatable-content">@EtiquetaRelacion(doc)</div></td>
+                                <td><div class="userDatatable-content">@doc.Descripcion</div></td>
+                                <td><div class="userDatatable-content">@FormatoTamano(doc.TamanoBytes)</div></td>
+                                <td><div class="userDatatable-content">@doc.FechaRegistro.ToString("dd/MM/yyyy HH:mm")</div></td>
+                                <td><div class="userDatatable-content">@doc.UsuarioRegistro.UsuarioNombre</div></td>
+                                <td>
+                                    <form asp-controller="Documentos" asp-action="Delete" asp-route-id="@doc.IdDocumento" method="post" onsubmit="return confirm('¿Eliminar este documento?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="uil uil-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                @if (!Model.Any())
+                {
+                    <p class="mb-0 mt-15">Todavía no hay documentos subidos en esta campaña.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            if (window.jQuery && jQuery.fn.select2) {
+                jQuery('.select2-relacion').select2({ width: '100%' });
+            }
+        })();
+    </script>
+}
