@@ -34,9 +34,9 @@ public class EventoFormViewModel
     [Display(Name = "Costo estimado")]
     public decimal? CostoEstimado { get; set; }
 
-    [Range(0, 99999999.99, ErrorMessage = "Costo fuera de rango")]
-    [Display(Name = "Costo real")]
-    public decimal? CostoReal { get; set; }
+    // El costo real NO se captura aquí: se recalcula automáticamente como
+    // la suma de los gastos registrados en Opr_Gastos_Evento (ver
+    // GastosEventoController.ActualizarCostoRealAsync).
 
     [Required(ErrorMessage = "El CP es obligatorio")]
     [StringLength(10)]

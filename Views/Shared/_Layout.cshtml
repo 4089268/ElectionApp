@@ -153,6 +153,12 @@
                                 <span class="menu-text">Eventos</span>
                             </a>
                         </li>
+                        <li class="@ActiveIf("GastosApoyo")">
+                            <a asp-controller="GastosApoyo" asp-action="Index">
+                                <span class="nav-icon uil uil-gift"></span>
+                                <span class="menu-text">Apoyos</span>
+                            </a>
+                        </li>
                         @if (User.IsInRole("Administrador"))
                         {
                             <li class="menu-title mt-30">

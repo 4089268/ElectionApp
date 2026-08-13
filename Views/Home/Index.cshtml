@@ -75,18 +75,35 @@
                     decimal totalEstimado = ViewBag.TotalCostoEstimado;
                     decimal totalReal = ViewBag.TotalCostoReal;
                     decimal diferencia = totalReal - totalEstimado;
+                    decimal totalApoyos = ViewBag.TotalGastosApoyo;
+                    decimal totalGeneral = totalReal + totalApoyos;
                 }
+                <p class="fw-500 mb-10">Gastos de eventos</p>
                 <dl class="row mb-0">
                     <dt class="col-sm-6">Costo estimado</dt>
                     <dd class="col-sm-6 text-sm-end">@totalEstimado.ToString("C2")</dd>
 
-                    <dt class="col-sm-6">Costo real</dt>
+                    <dt class="col-sm-6">Registrado (real)</dt>
                     <dd class="col-sm-6 text-sm-end">@totalReal.ToString("C2")</dd>
 
                     <dt class="col-sm-6">Diferencia</dt>
                     <dd class="col-sm-6 text-sm-end @(diferencia > 0 ? "text-danger" : "text-success")">@diferencia.ToString("C2")</dd>
                 </dl>
-                <p class="mb-0 mt-15 text-muted">Suma del costo estimado/real capturado en los eventos de esta campaña.</p>
+
+                <hr class="my-15" />
+
+                <p class="fw-500 mb-10">Gastos de apoyos / donaciones</p>
+                <div class="d-flex justify-content-between">
+                    <span>Total otorgado</span>
+                    <span>@totalApoyos.ToString("C2")</span>
+                </div>
+
+                <hr class="my-15" />
+
+                <div class="d-flex justify-content-between fw-500">
+                    <span>Total general de gastos</span>
+                    <span>@totalGeneral.ToString("C2")</span>
+                </div>
             </div>
         </div>
     </div>

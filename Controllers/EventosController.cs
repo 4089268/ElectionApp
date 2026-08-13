@@ -52,6 +52,7 @@ public class EventosController : Controller
         var evento = await _db.OprEventos
             .Include(e => e.Campana)
             .Include(e => e.Ubicacion)
+            .Include(e => e.Gastos).ThenInclude(g => g.UsuarioRegistro)
             .FirstOrDefaultAsync(e => e.IdEvento == id && e.IdCampana == idCampanaActual);
 
         if (evento is null)
@@ -96,7 +97,6 @@ public class EventosController : Controller
             IdUbicacion = ubicacion.IdUbicacion,
             Lugar = modelo.Lugar,
             CostoEstimado = modelo.CostoEstimado,
-            CostoReal = modelo.CostoReal,
         };
 
         _db.OprEventos.Add(evento);
@@ -127,7 +127,6 @@ public class EventosController : Controller
             IdCampana = evento.IdCampana,
             Lugar = evento.Lugar,
             CostoEstimado = evento.CostoEstimado,
-            CostoReal = evento.CostoReal,
             Cp = evento.Ubicacion.Cp,
             Colonia = evento.Ubicacion.Colonia,
             Localidad = evento.Ubicacion.Localidad,
@@ -167,7 +166,6 @@ public class EventosController : Controller
         evento.IdUbicacion = ubicacion.IdUbicacion;
         evento.Lugar = modelo.Lugar;
         evento.CostoEstimado = modelo.CostoEstimado;
-        evento.CostoReal = modelo.CostoReal;
 
         await _db.SaveChangesAsync();
         return RedirectToAction(nameof(Index));

@@ -102,12 +102,20 @@ public class IntegrantesController : Controller
             .Include(a => a.Integrante).ThenInclude(i => i.EstadoCivil)
             .Include(a => a.Integrante).ThenInclude(i => i.Domicilio)
             .Include(a => a.Rol)
+            .Include(a => a.GastosApoyo).ThenInclude(g => g.UsuarioRegistro)
+            .Include(a => a.GastosApoyo).ThenInclude(g => g.Evento)
             .FirstOrDefaultAsync(a => a.IdIntegrante == id && a.IdCampana == idCampanaActual);
 
         if (afiliacion is null)
         {
             return NotFound();
         }
+
+        ViewBag.Eventos = await _db.OprEventos
+            .Where(e => e.IdCampana == idCampanaActual)
+            .OrderByDescending(e => e.Fecha)
+            .Select(e => new { e.IdEvento, e.Descripcion })
+            .ToListAsync();
 
         return View(afiliacion);
     }

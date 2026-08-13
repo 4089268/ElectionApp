@@ -23,6 +23,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<OprEvento> OprEventos => Set<OprEvento>();
     public DbSet<OprEventoParticipante> OprEventoParticipantes => Set<OprEventoParticipante>();
     public DbSet<OprGastoEvento> OprGastosEvento => Set<OprGastoEvento>();
+    public DbSet<OprGastoApoyo> OprGastosApoyo => Set<OprGastoApoyo>();
     public DbSet<RolAplicacion> RolesAplicacion => Set<RolAplicacion>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();
 
@@ -193,11 +194,42 @@ public class ApplicationDbContext : DbContext
             e.Property(x => x.IdGasto).HasColumnName("id_gasto");
             e.Property(x => x.IdEvento).HasColumnName("id_evento");
             e.Property(x => x.Concepto).HasColumnName("concepto").HasMaxLength(150).IsRequired();
+            e.Property(x => x.CostoUnitario).HasColumnName("costo_unitario").HasColumnType("decimal(12,2)");
+            e.Property(x => x.Cantidad).HasColumnName("cantidad");
             e.Property(x => x.Monto).HasColumnName("monto").HasColumnType("decimal(12,2)");
             e.Property(x => x.FechaRegistro).HasColumnName("fecha_registro");
+            e.Property(x => x.IdUsuarioRegistro).HasColumnName("id_usuario_registro");
 
             e.HasOne(x => x.Evento).WithMany(x => x.Gastos)
                 .HasForeignKey(x => x.IdEvento).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.UsuarioRegistro).WithMany()
+                .HasForeignKey(x => x.IdUsuarioRegistro).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ---------- dbo.Opr_Gastos_Apoyo ----------
+        modelBuilder.Entity<OprGastoApoyo>(e =>
+        {
+            e.ToTable("Opr_Gastos_Apoyo", "dbo");
+            e.HasKey(x => x.IdGastoApoyo);
+            e.Property(x => x.IdGastoApoyo).HasColumnName("id_gasto_apoyo");
+            e.Property(x => x.IdCampana).HasColumnName("id_campaña");
+            e.Property(x => x.IdIntegranteCampana).HasColumnName("id_integrante_campana");
+            e.Property(x => x.IdEvento).HasColumnName("id_evento");
+            e.Property(x => x.Concepto).HasColumnName("concepto").HasMaxLength(150).IsRequired();
+            e.Property(x => x.CostoUnitario).HasColumnName("costo_unitario").HasColumnType("decimal(12,2)");
+            e.Property(x => x.Cantidad).HasColumnName("cantidad");
+            e.Property(x => x.Monto).HasColumnName("monto").HasColumnType("decimal(12,2)");
+            e.Property(x => x.FechaRegistro).HasColumnName("fecha_registro");
+            e.Property(x => x.IdUsuarioRegistro).HasColumnName("id_usuario_registro");
+
+            e.HasOne(x => x.Campana).WithMany()
+                .HasForeignKey(x => x.IdCampana).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.IntegranteCampana).WithMany(x => x.GastosApoyo)
+                .HasForeignKey(x => x.IdIntegranteCampana).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Evento).WithMany()
+                .HasForeignKey(x => x.IdEvento).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.UsuarioRegistro).WithMany()
+                .HasForeignKey(x => x.IdUsuarioRegistro).OnDelete(DeleteBehavior.Restrict);
         });
 
         // ---------- sistema.Roles_Aplicacion ----------

@@ -30,9 +30,13 @@ public class HomeController : Controller
             .OrderBy(e => e.Fecha).ThenBy(e => e.Hora)
             .ToListAsync();
 
-        // ---------- Resumen de gastos (costo estimado vs. real de los eventos) ----------
+        // ---------- Resumen de gastos: eventos y apoyos por separado ----------
         ViewBag.TotalCostoEstimado = eventosCampana.Sum(e => e.CostoEstimado ?? 0);
         ViewBag.TotalCostoReal = eventosCampana.Sum(e => e.CostoReal ?? 0);
+
+        ViewBag.TotalGastosApoyo = await _db.OprGastosApoyo
+            .Where(g => g.IdCampana == idCampanaActual)
+            .SumAsync(g => (decimal?)g.Monto) ?? 0;
 
         // ---------- Resumen de simpatizantes (afiliados a la campaña actual, por rol) ----------
         var resumenRoles = await _db.CatIntegranteCampanas

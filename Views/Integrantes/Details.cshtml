@@ -12,7 +12,7 @@
 </div>
 
 <div class="row">
-    <div class="col-lg-9">
+    <div class="col-lg-12">
         <div class="card mb-30">
             <div class="card-body p-sm-30">
                 <dl class="row mb-0">
@@ -67,5 +67,134 @@
                 </div>
             </div>
         </div>
+
+        <div class="card mb-30">
+            <div class="card-header border-bottom-0 p-sm-30">
+                <h5 class="fw-500">Apoyos y donaciones otorgados</h5>
+            </div>
+            <div class="card-body pt-0 px-30 pb-35">
+                @{
+                    var totalApoyos = Model.GastosApoyo.Sum(g => g.Monto);
+                }
+                <div class="d-flex justify-content-between fw-500 mb-15">
+                    <span>Total otorgado en esta campaña</span>
+                    <span>@totalApoyos.ToString("C2")</span>
+                </div>
+
+                @if (TempData["GastoError"] is not null)
+                {
+                    <div class="alert alert-danger mb-15">@TempData["GastoError"]</div>
+                }
+
+                @if (Model.GastosApoyo.Any())
+                {
+                    <div class="table-responsive mb-20">
+                        <table class="table mb-0 table-borderless">
+                            <thead>
+                                <tr class="userDatatable-header">
+                                    <th><span class="userDatatable-title">Concepto</span></th>
+                                    <th><span class="userDatatable-title text-end">Costo unitario</span></th>
+                                    <th><span class="userDatatable-title text-end">Cantidad</span></th>
+                                    <th><span class="userDatatable-title text-end">Total</span></th>
+                                    <th><span class="userDatatable-title">Evento</span></th>
+                                    <th><span class="userDatatable-title">Fecha</span></th>
+                                    <th><span class="userDatatable-title">Registrado por</span></th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var gasto in Model.GastosApoyo.OrderByDescending(g => g.FechaRegistro))
+                                {
+                                    <tr>
+                                        <td><div class="userDatatable-content">@gasto.Concepto</div></td>
+                                        <td class="text-end"><div class="userDatatable-content">@gasto.CostoUnitario.ToString("C2")</div></td>
+                                        <td class="text-end"><div class="userDatatable-content">@gasto.Cantidad</div></td>
+                                        <td class="text-end"><div class="userDatatable-content">@gasto.Monto.ToString("C2")</div></td>
+                                        <td><div class="userDatatable-content">@(gasto.Evento?.Descripcion ?? "—")</div></td>
+                                        <td><div class="userDatatable-content">@gasto.FechaRegistro.ToString("dd/MM/yyyy HH:mm")</div></td>
+                                        <td><div class="userDatatable-content">@gasto.UsuarioRegistro.UsuarioNombre</div></td>
+                                        <td class="text-end">
+                                            <form asp-controller="GastosApoyo" asp-action="Delete" asp-route-id="@gasto.IdGastoApoyo" method="post" onsubmit="return confirm('¿Eliminar este apoyo?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    <i class="uil uil-trash-alt"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="mb-20">Todavía no se han registrado apoyos para esta persona en esta campaña.</p>
+                }
+
+                <form asp-controller="GastosApoyo" asp-action="Create" method="post">
+                    <input type="hidden" name="idIntegranteCampana" value="@Model.IdIntegranteCampana" />
+                    <div class="row align-items-end">
+                        <div class="col-md-3">
+                            <div class="form-group mb-15 mb-md-0">
+                                <label>Concepto</label>
+                                <input type="text" name="concepto" class="form-control" placeholder="Despensa, apoyo económico, medicamento..." required />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group mb-15 mb-md-0">
+                                <label>Evento (opcional)</label>
+                                <select name="idEvento" class="form-control">
+                                    <option value="">Ninguno / ayuda general</option>
+                                    @foreach (var evento in ViewBag.Eventos)
+                                    {
+                                        <option value="@evento.IdEvento">@evento.Descripcion</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group mb-15 mb-md-0">
+                                <label>Costo unitario</label>
+                                <input type="number" name="costoUnitario" class="form-control gasto-costo-unitario" step="0.01" min="0.01" required />
+                            </div>
+                        </div>
+                        <div class="col-md-1">
+                            <div class="form-group mb-15 mb-md-0">
+                                <label>Cant.</label>
+                                <input type="number" name="cantidad" class="form-control gasto-cantidad" step="1" min="1" value="1" required />
+                            </div>
+                        </div>
+                        <div class="col-md-2 mt-15">
+                            <div class="form-group mb-15 mb-md-0">
+                                <label>Total</label>
+                                <input type="text" class="form-control gasto-total" value="$0.00" disabled />
+                            </div>
+                        </div>
+                        <div class="col-md-1 mt-15">
+                            <button type="submit" class="btn btn-primary btn-default btn-squared w-100">Registrar</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var costoUnitario = document.querySelector('.gasto-costo-unitario');
+            var cantidad = document.querySelector('.gasto-cantidad');
+            var total = document.querySelector('.gasto-total');
+            if (!costoUnitario || !cantidad || !total) return;
+
+            function actualizarTotal() {
+                var t = (parseFloat(costoUnitario.value) || 0) * (parseInt(cantidad.value, 10) || 0);
+                total.value = t.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+            }
+
+            costoUnitario.addEventListener('input', actualizarTotal);
+            cantidad.addEventListener('input', actualizarTotal);
+        })();
+    </script>
+}
