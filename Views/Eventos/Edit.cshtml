@@ -12,7 +12,7 @@
 </div>
 
 <div class="row">
-    <div class="col-lg-9">
+    <div class="col-lg-12">
         <div class="card mb-30">
             <div class="card-header border-bottom-0 p-sm-30">
                 <h5 class="fw-500">@Model.Descripcion</h5>
@@ -110,6 +110,15 @@
                         </div>
                     </div>
 
+                    <div class="form-group mb-25">
+                        <label>Ubicación en el mapa</label>
+                        <p class="text-muted mb-10">Haz clic en el mapa para marcar el pin exacto del evento (opcional: si no lo haces, se intenta calcular sola a partir de la dirección de arriba).</p>
+                        <div id="mapa-evento" class="radius-xl" style="height: 400px;"></div>
+                        <small class="text-muted d-block mt-10" id="mapa-evento-coords">Sin ubicación marcada todavía.</small>
+                        <input type="hidden" id="input-latitud" name="Latitud" value="@Model.Latitud?.ToString(System.Globalization.CultureInfo.InvariantCulture)" />
+                        <input type="hidden" id="input-longitud" name="Longitud" value="@Model.Longitud?.ToString(System.Globalization.CultureInfo.InvariantCulture)" />
+                    </div>
+
                     <div class="button-group d-flex pt-25">
                         <button type="submit" class="btn btn-primary btn-default btn-squared px-30 me-15">Guardar cambios</button>
                         <a asp-action="Index" class="btn btn-light btn-default btn-squared px-30">Cancelar</a>
@@ -119,3 +128,60 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var contenedor = document.getElementById('mapa-evento');
+            if (!contenedor) return;
+
+            var inputLat = document.getElementById('input-latitud');
+            var inputLng = document.getElementById('input-longitud');
+            var texto = document.getElementById('mapa-evento-coords');
+
+            var latInicial = parseFloat(inputLat.value);
+            var lngInicial = parseFloat(inputLng.value);
+            var tieneCoords = !isNaN(latInicial) && !isNaN(lngInicial);
+
+            // Centro por defecto: Ciudad Victoria, Tamaulipas (donde está
+            // enfocada la operación actual de la campaña).
+            var centro = tieneCoords ? [latInicial, lngInicial] : [23.7369, -99.1411];
+            var zoom = tieneCoords ? 15 : 8;
+
+            var mapa = L.map(contenedor).setView(centro, zoom);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 18,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+            }).addTo(mapa);
+
+            var marcador = null;
+
+            function actualizarCoords(lat, lng) {
+                inputLat.value = lat;
+                inputLng.value = lng;
+                texto.textContent = 'Lat: ' + lat.toFixed(6) + ', Lng: ' + lng.toFixed(6);
+            }
+
+            function ubicarPin(lat, lng) {
+                if (marcador) {
+                    marcador.setLatLng([lat, lng]);
+                } else {
+                    marcador = L.marker([lat, lng], { draggable: true }).addTo(mapa);
+                    marcador.on('dragend', function () {
+                        var pos = marcador.getLatLng();
+                        actualizarCoords(pos.lat, pos.lng);
+                    });
+                }
+                actualizarCoords(lat, lng);
+            }
+
+            if (tieneCoords) {
+                ubicarPin(latInicial, lngInicial);
+            }
+
+            mapa.on('click', function (e) {
+                ubicarPin(e.latlng.lat, e.latlng.lng);
+            });
+        })();
+    </script>
+}

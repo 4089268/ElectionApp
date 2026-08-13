@@ -61,4 +61,13 @@ public class EventoFormViewModel
     [StringLength(150)]
     [Display(Name = "Estado")]
     public string Estado { get; set; } = string.Empty;
+
+    // Se llenan al hacer clic en el pushpin del mapa (Create/Edit.cshtml).
+    // Si vienen con valor, mandan sobre el geocoding automático (ver
+    // EventosController.ObtenerOCrearUbicacionAsync).
+    [Range(-90, 90)]
+    public decimal? Latitud { get; set; }
+
+    [Range(-180, 180)]
+    public decimal? Longitud { get; set; }
 }

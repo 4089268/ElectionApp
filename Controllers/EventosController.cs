@@ -132,6 +132,8 @@ public class EventosController : Controller
             Localidad = evento.Ubicacion.Localidad,
             Municipio = evento.Ubicacion.Municipio,
             Estado = evento.Ubicacion.Estado,
+            Latitud = evento.Ubicacion.Latitud,
+            Longitud = evento.Ubicacion.Longitud,
         });
     }
 
@@ -224,18 +226,29 @@ public class EventosController : Controller
                 Municipio = modelo.Municipio,
                 Estado = modelo.Estado,
             };
+            _db.CatUbicaciones.Add(ubicacion);
+        }
 
+        if (modelo.Latitud.HasValue && modelo.Longitud.HasValue)
+        {
+            // El usuario ubicó el pushpin a mano en el mapa: siempre manda,
+            // incluso si la ubicación ya existía con otras coordenadas.
+            ubicacion.Latitud = modelo.Latitud;
+            ubicacion.Longitud = modelo.Longitud;
+        }
+        else if (ubicacion.Latitud is null || ubicacion.Longitud is null)
+        {
+            // Sin pin manual y sin coordenadas previas: geocoding automático
+            // como respaldo (p.ej. si el usuario no interactuó con el mapa).
             var coordenadas = await GeocodificarAsync(modelo);
             if (coordenadas is not null)
             {
                 ubicacion.Latitud = coordenadas.Value.Lat;
                 ubicacion.Longitud = coordenadas.Value.Lng;
             }
-
-            _db.CatUbicaciones.Add(ubicacion);
-            await _db.SaveChangesAsync();
         }
 
+        await _db.SaveChangesAsync();
         return ubicacion;
     }
 
