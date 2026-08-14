@@ -1,0 +1,12 @@
+@model string
+@{
+    var clase = Model switch
+    {
+        "Pendiente" => "bg-warning",
+        "En proceso" => "bg-info",
+        "Concluida" => "bg-success",
+        "Cancelada" => "bg-light-danger",
+        _ => "bg-light-gray",
+    };
+}
+<span class="badge @clase">@Model</span>

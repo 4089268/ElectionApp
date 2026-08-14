@@ -26,6 +26,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<OprGastoApoyo> OprGastosApoyo => Set<OprGastoApoyo>();
     public DbSet<CatTipoDocumento> CatTiposDocumento => Set<CatTipoDocumento>();
     public DbSet<OprDocumento> OprDocumentos => Set<OprDocumento>();
+    public DbSet<CatEstatusPeticion> CatEstatusPeticiones => Set<CatEstatusPeticion>();
+    public DbSet<OprPeticion> OprPeticiones => Set<OprPeticion>();
     public DbSet<RolAplicacion> RolesAplicacion => Set<RolAplicacion>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();
 
@@ -272,6 +274,43 @@ public class ApplicationDbContext : DbContext
                 .HasForeignKey(x => x.IdGastoApoyo).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.TipoDocumento).WithMany()
                 .HasForeignKey(x => x.IdTipoDocumento).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.UsuarioRegistro).WithMany()
+                .HasForeignKey(x => x.IdUsuarioRegistro).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ---------- dbo.Cat_Estatus_Peticion ----------
+        modelBuilder.Entity<CatEstatusPeticion>(e =>
+        {
+            e.ToTable("Cat_Estatus_Peticion", "dbo");
+            e.HasKey(x => x.IdEstatusPeticion);
+            e.Property(x => x.IdEstatusPeticion).HasColumnName("id_estatus_peticion");
+            e.Property(x => x.Descripcion).HasColumnName("descripcion").HasMaxLength(50).IsRequired();
+        });
+
+        // ---------- dbo.Opr_Peticiones ----------
+        modelBuilder.Entity<OprPeticion>(e =>
+        {
+            e.ToTable("Opr_Peticiones", "dbo");
+            e.HasKey(x => x.IdPeticion);
+            e.Property(x => x.IdPeticion).HasColumnName("id_peticion");
+            e.Property(x => x.IdCampana).HasColumnName("id_campaña");
+            e.Property(x => x.IdIntegranteCampana).HasColumnName("id_integrante_campana");
+            e.Property(x => x.IdEvento).HasColumnName("id_evento");
+            e.Property(x => x.IdEstatusPeticion).HasColumnName("id_estatus_peticion");
+            e.Property(x => x.Descripcion).HasColumnName("descripcion").HasMaxLength(500).IsRequired();
+            e.Property(x => x.FechaRegistro).HasColumnName("fecha_registro");
+            e.Property(x => x.FechaConclusion).HasColumnName("fecha_conclusion");
+            e.Property(x => x.Observaciones).HasColumnName("observaciones").HasMaxLength(500);
+            e.Property(x => x.IdUsuarioRegistro).HasColumnName("id_usuario_registro");
+
+            e.HasOne(x => x.Campana).WithMany()
+                .HasForeignKey(x => x.IdCampana).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.IntegranteCampana).WithMany(x => x.Peticiones)
+                .HasForeignKey(x => x.IdIntegranteCampana).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Evento).WithMany(x => x.Peticiones)
+                .HasForeignKey(x => x.IdEvento).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Estatus).WithMany()
+                .HasForeignKey(x => x.IdEstatusPeticion).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.UsuarioRegistro).WithMany()
                 .HasForeignKey(x => x.IdUsuarioRegistro).OnDelete(DeleteBehavior.Restrict);
         });

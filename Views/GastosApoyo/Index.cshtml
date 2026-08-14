@@ -46,7 +46,7 @@
                             <th><span class="userDatatable-title">Fecha</span></th>
                             <th><span class="userDatatable-title">Registrado por</span></th>
                             <th><span class="userDatatable-title">Evidencia</span></th>
-                            <th></th>
+                            <th><span class="userDatatable-title float-end">Acciones</span></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -87,11 +87,15 @@
                                     }
                                 </td>
                                 <td>
-                                    <form asp-controller="GastosApoyo" asp-action="Delete" asp-route-id="@gasto.IdGastoApoyo" method="post" onsubmit="return confirm('¿Eliminar este apoyo?');">
+                                    <ul class="orderDatatable_actions mb-0 d-flex flex-wrap justify-content-end">
+                                        <li>
+                                            <a href="#" class="remove" onclick="event.preventDefault(); document.getElementById('form-eliminar-apoyo-@gasto.IdGastoApoyo').submit();">
+                                                <i class="uil uil-trash-alt"></i>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                    <form id="form-eliminar-apoyo-@gasto.IdGastoApoyo" asp-controller="GastosApoyo" asp-action="Delete" asp-route-id="@gasto.IdGastoApoyo" method="post" class="d-none" onsubmit="return confirm('¿Eliminar este apoyo?');">
                                         <input type="hidden" name="returnUrl" value="@Url.Action("Index", new { filtro = ViewBag.Filtro })" />
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">
-                                            <i class="uil uil-trash-alt"></i>
-                                        </button>
                                     </form>
                                 </td>
                             </tr>

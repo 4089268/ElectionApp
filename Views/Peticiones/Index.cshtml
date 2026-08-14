@@ -1,0 +1,104 @@
+@model IEnumerable<OprPeticion>
+@{
+    ViewData["Title"] = "Peticiones";
+}
+
+<div class="breadcrumb-main user-member justify-content-sm-between">
+    <div class="d-flex flex-wrap justify-content-center breadcrumb-main__wrapper">
+        <div class="d-flex align-items-center user-member__title justify-content-center me-sm-25">
+            <h4 class="text-capitalize fw-500 breadcrumb-title">Peticiones</h4>
+            <span class="sub-title ms-sm-25 ps-sm-25">@Model.Count() en total</span>
+        </div>
+        <form method="get" class="d-flex align-items-center user-member__form my-sm-0 my-2">
+            <img src="~/theme/img/svg/search.svg" alt="search" class="svg">
+            <input type="text" name="filtro" value="@ViewBag.Filtro" class="form-control me-sm-2 border-0 box-shadow-none" placeholder="Buscar por integrante, CURP, evento o descripción">
+            <select name="idEstatus" class="form-control ms-2" onchange="this.form.submit()" style="max-width:180px;">
+                <option value="">Todos los estatus</option>
+                @foreach (var estatus in ViewBag.Estatus)
+                {
+                    <option value="@estatus.IdEstatusPeticion" selected="@(ViewBag.IdEstatusSeleccionado == estatus.IdEstatusPeticion)">@estatus.Descripcion</option>
+                }
+            </select>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        @if (TempData["PeticionError"] is not null)
+        {
+            <div class="alert alert-danger mb-15">@TempData["PeticionError"]</div>
+        }
+
+        <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100 mb-30">
+            <div class="d-flex justify-content-between align-items-center mb-15">
+                <h6 class="mb-0">Historial de peticiones</h6>
+                <a asp-controller="Peticiones" asp-action="Create" asp-route-returnUrl="@Url.Action("Index", new { filtro = ViewBag.Filtro, idEstatus = ViewBag.IdEstatusSeleccionado })" class="btn btn-primary btn-default btn-squared px-25">
+                    <i class="uil uil-plus"></i> Registrar petición
+                </a>
+            </div>
+            <div class="table-responsive">
+                <table class="table mb-0 table-borderless">
+                    <thead>
+                        <tr class="userDatatable-header">
+                            <th><span class="userDatatable-title">Integrante</span></th>
+                            <th><span class="userDatatable-title">Evento</span></th>
+                            <th><span class="userDatatable-title">Petición</span></th>
+                            <th><span class="userDatatable-title">Estatus</span></th>
+                            <th><span class="userDatatable-title">Fecha</span></th>
+                            <th><span class="userDatatable-title">Registrado por</span></th>
+                            <th><span class="userDatatable-title float-end">Acciones</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var peticion in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="userDatatable-inline-title">
+                                        @if (peticion.IntegranteCampana is not null)
+                                        {
+                                            <a asp-controller="Integrantes" asp-action="Details" asp-route-id="@peticion.IntegranteCampana.IdIntegrante" class="text-dark fw-500">
+                                                @peticion.IntegranteCampana.Integrante.NombreCompleto
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">— (general)</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td><div class="userDatatable-content">@(peticion.Evento?.Descripcion ?? "—")</div></td>
+                                <td><div class="userDatatable-content">@peticion.Descripcion</div></td>
+                                <td>@await Html.PartialAsync("_EstatusBadge", peticion.Estatus.Descripcion)</td>
+                                <td><div class="userDatatable-content">@peticion.FechaRegistro.ToString("dd/MM/yyyy HH:mm")</div></td>
+                                <td><div class="userDatatable-content">@peticion.UsuarioRegistro.UsuarioNombre</div></td>
+                                <td>
+                                    <ul class="orderDatatable_actions mb-0 d-flex flex-wrap justify-content-end">
+                                        <li>
+                                            <a asp-controller="Peticiones" asp-action="Edit" asp-route-id="@peticion.IdPeticion" asp-route-returnUrl="@Url.Action("Index", new { filtro = ViewBag.Filtro, idEstatus = ViewBag.IdEstatusSeleccionado })" class="edit">
+                                                <i class="uil uil-edit"></i>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="#" class="remove" onclick="event.preventDefault(); document.getElementById('form-eliminar-peticion-@peticion.IdPeticion').submit();">
+                                                <i class="uil uil-trash-alt"></i>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                    <form id="form-eliminar-peticion-@peticion.IdPeticion" asp-controller="Peticiones" asp-action="Delete" asp-route-id="@peticion.IdPeticion" method="post" class="d-none" onsubmit="return confirm('¿Eliminar esta petición?');">
+                                        <input type="hidden" name="returnUrl" value="@Url.Action("Index", new { filtro = ViewBag.Filtro, idEstatus = ViewBag.IdEstatusSeleccionado })" />
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                @if (!Model.Any())
+                {
+                    <p class="mb-0 mt-15">Todavía no hay peticiones registradas en esta campaña.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>

@@ -20,4 +20,5 @@ public class CatIntegranteCampana
     [ValidateNever] public CatIntegranteCampana? Superior { get; set; }
     [ValidateNever] public ICollection<CatIntegranteCampana> Subordinados { get; set; } = new List<CatIntegranteCampana>();
     [ValidateNever] public ICollection<OprGastoApoyo> GastosApoyo { get; set; } = new List<OprGastoApoyo>();
+    [ValidateNever] public ICollection<OprPeticion> Peticiones { get; set; } = new List<OprPeticion>();
 }

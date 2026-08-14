@@ -18,4 +18,5 @@ public class OprEvento
     [ValidateNever] public CatUbicacion Ubicacion { get; set; } = null!;
     [ValidateNever] public ICollection<OprEventoParticipante> Participantes { get; set; } = new List<OprEventoParticipante>();
     [ValidateNever] public ICollection<OprGastoEvento> Gastos { get; set; } = new List<OprGastoEvento>();
+    [ValidateNever] public ICollection<OprPeticion> Peticiones { get; set; } = new List<OprPeticion>();
 }

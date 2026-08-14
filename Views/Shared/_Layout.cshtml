@@ -159,6 +159,12 @@
                                 <span class="menu-text">Apoyos</span>
                             </a>
                         </li>
+                        <li class="@ActiveIf("Peticiones")">
+                            <a asp-controller="Peticiones" asp-action="Index">
+                                <span class="nav-icon uil uil-comment-question"></span>
+                                <span class="menu-text">Peticiones</span>
+                            </a>
+                        </li>
                         <li class="@ActiveIf("Documentos")">
                             <a asp-controller="Documentos" asp-action="Index">
                                 <span class="nav-icon uil uil-file-upload-alt"></span>

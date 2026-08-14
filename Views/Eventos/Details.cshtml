@@ -130,5 +130,56 @@
                 }
             </div>
         </div>
+
+        <div class="card mb-30">
+            <div class="card-header border-bottom-0 p-sm-30 d-flex justify-content-between align-items-center">
+                <h5 class="fw-500 mb-0">Peticiones recabadas en el evento</h5>
+                <a asp-controller="Peticiones" asp-action="Create" asp-route-idEvento="@Model.IdEvento" asp-route-returnUrl="@Url.Action("Details", "Eventos", new { id = Model.IdEvento })" class="btn btn-primary btn-default btn-squared px-25">
+                    <i class="uil uil-plus"></i> Registrar petición
+                </a>
+            </div>
+            <div class="card-body pt-0 px-30 pb-35">
+                @if (Model.Peticiones.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table mb-0 table-borderless">
+                            <thead>
+                                <tr class="userDatatable-header">
+                                    <th><span class="userDatatable-title">Integrante</span></th>
+                                    <th><span class="userDatatable-title">Petición</span></th>
+                                    <th><span class="userDatatable-title">Estatus</span></th>
+                                    <th><span class="userDatatable-title">Fecha</span></th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var peticion in Model.Peticiones.OrderByDescending(p => p.FechaRegistro))
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="userDatatable-content">
+                                                @(peticion.IntegranteCampana is not null ? peticion.IntegranteCampana.Integrante.NombreCompleto : "— (general)")
+                                            </div>
+                                        </td>
+                                        <td><div class="userDatatable-content">@peticion.Descripcion</div></td>
+                                        <td>@await Html.PartialAsync("~/Views/Peticiones/_EstatusBadge.cshtml", peticion.Estatus.Descripcion)</td>
+                                        <td><div class="userDatatable-content">@peticion.FechaRegistro.ToString("dd/MM/yyyy HH:mm")</div></td>
+                                        <td class="text-end">
+                                            <a asp-controller="Peticiones" asp-action="Edit" asp-route-id="@peticion.IdPeticion" asp-route-returnUrl="@Url.Action("Details", "Eventos", new { id = Model.IdEvento })" class="btn btn-sm btn-outline-primary">
+                                                <i class="uil uil-edit"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="mb-0">Todavía no hay peticiones registradas para este evento.</p>
+                }
+            </div>
+        </div>
     </div>
 </div>

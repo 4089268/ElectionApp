@@ -105,6 +105,8 @@ public class IntegrantesController : Controller
             .Include(a => a.GastosApoyo).ThenInclude(g => g.UsuarioRegistro)
             .Include(a => a.GastosApoyo).ThenInclude(g => g.Evento)
             .Include(a => a.GastosApoyo).ThenInclude(g => g.Documentos)
+            .Include(a => a.Peticiones).ThenInclude(p => p.Evento)
+            .Include(a => a.Peticiones).ThenInclude(p => p.Estatus)
             .FirstOrDefaultAsync(a => a.IdIntegrante == id && a.IdCampana == idCampanaActual);
 
         if (afiliacion is null)

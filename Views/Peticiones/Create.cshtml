@@ -1,0 +1,84 @@
+@{
+    ViewData["Title"] = "Registrar petición";
+}
+
+<div class="breadcrumb-main">
+    <div class="d-flex flex-wrap justify-content-center breadcrumb-main__wrapper">
+        <div class="d-flex align-items-center">
+            <h4 class="text-capitalize fw-500 breadcrumb-title">Registrar petición</h4>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card mb-30">
+            <div class="card-body p-sm-30">
+                <p class="text-muted mb-20">El simpatizante y el evento son opcionales: una petición puede ser general, sin persona ni evento asociado. Se registra con estatus "Pendiente".</p>
+
+                @if (TempData["PeticionError"] is not null)
+                {
+                    <div class="alert alert-danger mb-20">@TempData["PeticionError"]</div>
+                }
+
+                <form asp-controller="Peticiones" asp-action="Create" method="post">
+                    <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-25">
+                                <label>Integrante (opcional)</label>
+                                <select name="idIntegranteCampana" class="form-control select2">
+                                    <option value="">Ninguno / petición general</option>
+                                    @foreach (var integrante in ViewBag.Integrantes)
+                                    {
+                                        <option value="@integrante.IdIntegranteCampana" selected="@(ViewBag.IdIntegranteCampanaSeleccionado == integrante.IdIntegranteCampana)">@integrante.NombreCompleto</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-25">
+                                <label>Evento (opcional)</label>
+                                <select name="idEvento" class="form-control select2">
+                                    <option value="">Ninguno</option>
+                                    @foreach (var evento in ViewBag.Eventos)
+                                    {
+                                        <option value="@evento.IdEvento" selected="@(ViewBag.IdEventoSeleccionado == evento.IdEvento)">@evento.Descripcion</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group mb-25">
+                                <label>Petición</label>
+                                <textarea name="descripcion" class="form-control" rows="3" placeholder="Describe en qué consiste la petición..." required></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="button-group d-flex pt-15">
+                        <button type="submit" class="btn btn-primary btn-default btn-squared px-30 me-15">Registrar petición</button>
+                        @if (!string.IsNullOrEmpty(ViewBag.ReturnUrl))
+                        {
+                            <a href="@ViewBag.ReturnUrl" class="btn btn-light btn-default btn-squared px-30">Cancelar</a>
+                        }
+                        else
+                        {
+                            <a asp-controller="Peticiones" asp-action="Index" class="btn btn-light btn-default btn-squared px-30">Cancelar</a>
+                        }
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            if (window.jQuery && jQuery.fn.select2) {
+                jQuery('.select2').select2({ width: '100%' });
+            }
+        })();
+    </script>
+}

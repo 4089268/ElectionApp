@@ -1,0 +1,85 @@
+@model OprPeticion
+@{
+    ViewData["Title"] = "Editar petición";
+}
+
+<div class="breadcrumb-main">
+    <div class="d-flex flex-wrap justify-content-center breadcrumb-main__wrapper">
+        <div class="d-flex align-items-center">
+            <h4 class="text-capitalize fw-500 breadcrumb-title">Editar petición</h4>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card mb-30">
+            <div class="card-body p-sm-30">
+                <dl class="row mb-20">
+                    <dt class="col-sm-3">Integrante</dt>
+                    <dd class="col-sm-9">
+                        @(Model.IntegranteCampana is not null ? Model.IntegranteCampana.Integrante.NombreCompleto : "— (general)")
+                    </dd>
+
+                    <dt class="col-sm-3">Evento</dt>
+                    <dd class="col-sm-9">@(Model.Evento?.Descripcion ?? "—")</dd>
+
+                    <dt class="col-sm-3">Registrada</dt>
+                    <dd class="col-sm-9">@Model.FechaRegistro.ToString("dd/MM/yyyy HH:mm")</dd>
+
+                    @if (Model.FechaConclusion.HasValue)
+                    {
+                        <dt class="col-sm-3">Concluida/Cancelada</dt>
+                        <dd class="col-sm-9">@Model.FechaConclusion.Value.ToString("dd/MM/yyyy HH:mm")</dd>
+                    }
+                </dl>
+
+                @if (TempData["PeticionError"] is not null)
+                {
+                    <div class="alert alert-danger mb-20">@TempData["PeticionError"]</div>
+                }
+
+                <form asp-controller="Peticiones" asp-action="Edit" asp-route-id="@Model.IdPeticion" method="post">
+                    <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group mb-25">
+                                <label>Petición</label>
+                                <textarea name="descripcion" class="form-control" rows="3" required>@Model.Descripcion</textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-25">
+                                <label>Estatus</label>
+                                <select name="idEstatusPeticion" class="form-control">
+                                    @foreach (var estatus in ViewBag.Estatus)
+                                    {
+                                        <option value="@estatus.IdEstatusPeticion" selected="@(Model.IdEstatusPeticion == estatus.IdEstatusPeticion)">@estatus.Descripcion</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group mb-25">
+                                <label>Observaciones (opcional)</label>
+                                <textarea name="observaciones" class="form-control" rows="3" placeholder="Notas de seguimiento o resolución...">@Model.Observaciones</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="button-group d-flex pt-15">
+                        <button type="submit" class="btn btn-primary btn-default btn-squared px-30 me-15">Guardar</button>
+                        @if (!string.IsNullOrEmpty(ViewBag.ReturnUrl))
+                        {
+                            <a href="@ViewBag.ReturnUrl" class="btn btn-light btn-default btn-squared px-30">Cancelar</a>
+                        }
+                        else
+                        {
+                            <a asp-controller="Peticiones" asp-action="Index" class="btn btn-light btn-default btn-squared px-30">Cancelar</a>
+                        }
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

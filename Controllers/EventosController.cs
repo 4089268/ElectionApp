@@ -54,6 +54,8 @@ public class EventosController : Controller
             .Include(e => e.Ubicacion)
             .Include(e => e.Gastos).ThenInclude(g => g.UsuarioRegistro)
             .Include(e => e.Gastos).ThenInclude(g => g.Documentos)
+            .Include(e => e.Peticiones).ThenInclude(p => p.IntegranteCampana).ThenInclude(a => a!.Integrante)
+            .Include(e => e.Peticiones).ThenInclude(p => p.Estatus)
             .FirstOrDefaultAsync(e => e.IdEvento == id && e.IdCampana == idCampanaActual);
 
         if (evento is null)
