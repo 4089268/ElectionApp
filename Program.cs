@@ -1,9 +1,19 @@
+using System.Globalization;
 using ElectionApp.Data;
 using ElectionApp.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
+
+// Toda la app (formatos de moneda/fecha/decimales) se fuerza a es-MX, sin
+// importar la configuración regional del servidor donde corra — así se
+// evita que "$" termine mostrándose como "€" u otro símbolo si el SO tiene
+// otra cultura por defecto (p.ej. es-ES).
+var culturaApp = new CultureInfo("es-MX");
+CultureInfo.DefaultThreadCurrentCulture = culturaApp;
+CultureInfo.DefaultThreadCurrentUICulture = culturaApp;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -66,6 +76,13 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+app.UseRequestLocalization(new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new RequestCulture(culturaApp),
+    SupportedCultures = new[] { culturaApp },
+    SupportedUICultures = new[] { culturaApp },
+});
 
 app.UseRouting();
 
