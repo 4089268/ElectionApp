@@ -16,4 +16,5 @@ public class OprGastoEvento
 
     [ValidateNever] public OprEvento Evento { get; set; } = null!;
     [ValidateNever] public Usuario UsuarioRegistro { get; set; } = null!;
+    [ValidateNever] public ICollection<OprDocumento> Documentos { get; set; } = new List<OprDocumento>();
 }

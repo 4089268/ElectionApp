@@ -266,7 +266,7 @@ public class ApplicationDbContext : DbContext
                 .HasForeignKey(x => x.IdCampana).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.Evento).WithMany()
                 .HasForeignKey(x => x.IdEvento).OnDelete(DeleteBehavior.Restrict);
-            e.HasOne(x => x.Gasto).WithMany()
+            e.HasOne(x => x.Gasto).WithMany(x => x.Documentos)
                 .HasForeignKey(x => x.IdGasto).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.GastoApoyo).WithMany(x => x.Documentos)
                 .HasForeignKey(x => x.IdGastoApoyo).OnDelete(DeleteBehavior.Restrict);

@@ -1,0 +1,98 @@
+@{
+    ViewData["Title"] = "Registrar gasto";
+    var evento = (OprEvento)ViewBag.Evento;
+}
+
+<div class="breadcrumb-main">
+    <div class="d-flex flex-wrap justify-content-center breadcrumb-main__wrapper">
+        <div class="d-flex align-items-center">
+            <h4 class="text-capitalize fw-500 breadcrumb-title">Registrar gasto</h4>
+            <span class="sub-title ms-sm-25 ps-sm-25">@evento.Descripcion</span>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card mb-30">
+            <div class="card-body p-sm-30">
+                @if (TempData["GastoError"] is not null)
+                {
+                    <div class="alert alert-danger mb-20">@TempData["GastoError"]</div>
+                }
+
+                <form asp-controller="GastosEvento" asp-action="Create" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="idEvento" value="@evento.IdEvento" />
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-25">
+                                <label>Concepto</label>
+                                <input type="text" name="concepto" class="form-control" placeholder="Renta de local, transporte, comida..." required />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group mb-25">
+                                <label>Costo unitario</label>
+                                <input type="number" name="costoUnitario" class="form-control gasto-costo-unitario" step="0.01" min="0.01" required />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group mb-25">
+                                <label>Cantidad</label>
+                                <input type="number" name="cantidad" class="form-control gasto-cantidad" step="1" min="1" value="1" required />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group mb-25">
+                                <label>Total</label>
+                                <input type="text" class="form-control gasto-total" value="$0.00" disabled />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-25">
+                                <label>Evidencia (opcional)</label>
+                                <input type="file" name="evidencia" class="form-control" accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx" />
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="form-group mb-25">
+                                <label>Tipo de evidencia</label>
+                                <select name="idTipoDocumento" class="form-control">
+                                    <option value="">— (solo si adjuntas archivo)</option>
+                                    @foreach (var tipo in ViewBag.TiposDocumento)
+                                    {
+                                        <option value="@tipo.IdTipoDocumento">@tipo.Descripcion</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="button-group d-flex pt-15">
+                        <button type="submit" class="btn btn-primary btn-default btn-squared px-30 me-15">Registrar gasto</button>
+                        <a asp-controller="Eventos" asp-action="Details" asp-route-id="@evento.IdEvento" class="btn btn-light btn-default btn-squared px-30">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var costoUnitario = document.querySelector('.gasto-costo-unitario');
+            var cantidad = document.querySelector('.gasto-cantidad');
+            var total = document.querySelector('.gasto-total');
+            if (!costoUnitario || !cantidad || !total) return;
+
+            function actualizarTotal() {
+                var t = (parseFloat(costoUnitario.value) || 0) * (parseInt(cantidad.value, 10) || 0);
+                total.value = t.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+            }
+
+            costoUnitario.addEventListener('input', actualizarTotal);
+            cantidad.addEventListener('input', actualizarTotal);
+        })();
+    </script>
+}

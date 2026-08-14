@@ -112,14 +112,6 @@ public class IntegrantesController : Controller
             return NotFound();
         }
 
-        ViewBag.Eventos = await _db.OprEventos
-            .Where(e => e.IdCampana == idCampanaActual)
-            .OrderByDescending(e => e.Fecha)
-            .Select(e => new { e.IdEvento, e.Descripcion })
-            .ToListAsync();
-
-        ViewBag.TiposDocumento = await _db.CatTiposDocumento.OrderBy(t => t.Descripcion).ToListAsync();
-
         return View(afiliacion);
     }
 

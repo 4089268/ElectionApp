@@ -11,9 +11,10 @@ namespace ElectionApp.Controllers;
 // Siempre pertenece a la campaña activa; el simpatizante y el evento a los
 // que se asocia son OPCIONALES (un apoyo puede ser una ayuda general, y
 // puede o no haberse dado durante un evento concreto).
-// Tiene su propia página (Index) para ver y registrar apoyos de toda la
-// campaña, y además se puede seguir registrando desde Integrantes/Details
-// (por eso Create/Delete aceptan un returnUrl opcional: vuelven a donde se
+// Tiene su propia página de listado (Index) y su propia página de alta
+// (Create, separada de Index para no saturar el listado); el registro se
+// puede iniciar desde GastosApoyo/Index o desde Integrantes/Details (por
+// eso Create/Delete aceptan un returnUrl opcional: vuelven a donde se
 // llamaron). Separado a propósito de GastosEventoController: son dos
 // rubros distintos de la contabilidad de la campaña.
 // Al registrar un apoyo se puede adjuntar evidencia (foto/documento) de
@@ -57,27 +58,31 @@ public class GastosApoyoController : Controller
         var lista = await query.OrderByDescending(g => g.FechaRegistro).ToListAsync();
         ViewBag.TotalApoyos = lista.Sum(g => g.Monto);
 
-        var afiliaciones = await _db.CatIntegranteCampanas
-            .Include(a => a.Integrante)
-            .Where(a => a.IdCampana == idCampanaActual)
-            .OrderBy(a => a.Integrante.ApellidoPaterno).ThenBy(a => a.Integrante.ApellidoMaterno).ThenBy(a => a.Integrante.Nombre)
-            .ToListAsync();
-
-        // NombreCompleto es una propiedad calculada en C# (no una columna),
-        // así que la proyección se hace en memoria, después de traer los datos.
-        ViewBag.Integrantes = afiliaciones
-            .Select(a => new { a.IdIntegranteCampana, a.Integrante.NombreCompleto })
-            .ToList();
-
-        ViewBag.Eventos = await _db.OprEventos
-            .Where(e => e.IdCampana == idCampanaActual)
-            .OrderByDescending(e => e.Fecha)
-            .Select(e => new { e.IdEvento, e.Descripcion })
-            .ToListAsync();
-
-        ViewBag.TiposDocumento = await _db.CatTiposDocumento.OrderBy(t => t.Descripcion).ToListAsync();
-
         return View(lista);
+    }
+
+    // GET: /GastosApoyo/Create
+    public async Task<IActionResult> Create(int? idIntegranteCampana, int? idEvento, string? returnUrl = null)
+    {
+        var idCampanaActual = ObtenerIdCampanaActual();
+
+        if (idIntegranteCampana.HasValue
+            && !await _db.CatIntegranteCampanas.AnyAsync(a => a.IdIntegranteCampana == idIntegranteCampana.Value && a.IdCampana == idCampanaActual))
+        {
+            return NotFound();
+        }
+
+        if (idEvento.HasValue
+            && !await _db.OprEventos.AnyAsync(e => e.IdEvento == idEvento.Value && e.IdCampana == idCampanaActual))
+        {
+            return NotFound();
+        }
+
+        await CargarListasAsync(idCampanaActual);
+        ViewBag.IdIntegranteCampanaSeleccionado = idIntegranteCampana;
+        ViewBag.IdEventoSeleccionado = idEvento;
+        ViewBag.ReturnUrl = returnUrl;
+        return View();
     }
 
     // POST: /GastosApoyo/Create
@@ -105,7 +110,7 @@ public class GastosApoyoController : Controller
         if (string.IsNullOrWhiteSpace(concepto) || costoUnitario <= 0 || cantidad <= 0)
         {
             TempData["GastoError"] = "Captura un concepto, un costo unitario y una cantidad mayores a cero.";
-            return await Redirigir(returnUrl, idIntegranteCampana);
+            return RedirectToAction(nameof(Create), new { idIntegranteCampana, idEvento, returnUrl });
         }
 
         var hayEvidencia = evidencia is not null && evidencia.Length > 0;
@@ -114,14 +119,14 @@ public class GastosApoyoController : Controller
             if (!idTipoDocumento.HasValue)
             {
                 TempData["GastoError"] = "Selecciona el tipo de documento de la evidencia que adjuntaste.";
-                return await Redirigir(returnUrl, idIntegranteCampana);
+                return RedirectToAction(nameof(Create), new { idIntegranteCampana, idEvento, returnUrl });
             }
 
             var errorArchivo = _documentos.Validar(evidencia!);
             if (errorArchivo is not null)
             {
                 TempData["GastoError"] = errorArchivo;
-                return await Redirigir(returnUrl, idIntegranteCampana);
+                return RedirectToAction(nameof(Create), new { idIntegranteCampana, idEvento, returnUrl });
             }
 
             if (!await _db.CatTiposDocumento.AnyAsync(t => t.IdTipoDocumento == idTipoDocumento.Value))
@@ -198,6 +203,31 @@ public class GastosApoyoController : Controller
         }
 
         return RedirectToAction(nameof(Index));
+    }
+
+    // Carga los combos (integrantes/eventos/tipos de documento) que usa el
+    // formulario de GastosApoyo/Create.
+    private async Task CargarListasAsync(int idCampanaActual)
+    {
+        var afiliaciones = await _db.CatIntegranteCampanas
+            .Include(a => a.Integrante)
+            .Where(a => a.IdCampana == idCampanaActual)
+            .OrderBy(a => a.Integrante.ApellidoPaterno).ThenBy(a => a.Integrante.ApellidoMaterno).ThenBy(a => a.Integrante.Nombre)
+            .ToListAsync();
+
+        // NombreCompleto es una propiedad calculada en C# (no una columna),
+        // así que la proyección se hace en memoria, después de traer los datos.
+        ViewBag.Integrantes = afiliaciones
+            .Select(a => new { a.IdIntegranteCampana, a.Integrante.NombreCompleto })
+            .ToList();
+
+        ViewBag.Eventos = await _db.OprEventos
+            .Where(e => e.IdCampana == idCampanaActual)
+            .OrderByDescending(e => e.Fecha)
+            .Select(e => new { e.IdEvento, e.Descripcion })
+            .ToListAsync();
+
+        ViewBag.TiposDocumento = await _db.CatTiposDocumento.OrderBy(t => t.Descripcion).ToListAsync();
     }
 
     private int ObtenerIdCampanaActual() => HttpContext.Session.GetInt32("IdCampanaActual") ?? 0;

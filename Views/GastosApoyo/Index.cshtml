@@ -18,99 +18,20 @@
 
 <div class="row">
     <div class="col-lg-12">
-        <div class="card mb-30">
-            <div class="card-header border-bottom-0 p-sm-30">
-                <h5 class="fw-500">Registrar apoyo</h5>
-            </div>
-            <div class="card-body pt-0 px-30 pb-35">
-                <p class="text-muted mb-20">El simpatizante y el evento son opcionales: un apoyo puede ser una ayuda general, sin persona ni evento asociado.</p>
-
-                @if (TempData["GastoError"] is not null)
-                {
-                    <div class="alert alert-danger mb-15">@TempData["GastoError"]</div>
-                }
-
-                <form asp-controller="GastosApoyo" asp-action="Create" method="post" enctype="multipart/form-data">
-                    <input type="hidden" name="returnUrl" value="@Url.Action("Index", new { filtro = ViewBag.Filtro })" />
-                    <div class="row align-items-end">
-                        <div class="col-md-3">
-                            <div class="form-group mb-15 mb-md-0">
-                                <label>Integrante (opcional)</label>
-                                <select name="idIntegranteCampana" class="form-control select2">
-                                    <option value="">Ninguno / ayuda general</option>
-                                    @foreach (var integrante in ViewBag.Integrantes)
-                                    {
-                                        <option value="@integrante.IdIntegranteCampana">@integrante.NombreCompleto</option>
-                                    }
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group mb-15 mb-md-0">
-                                <label>Evento (opcional)</label>
-                                <select name="idEvento" class="form-control select2">
-                                    <option value="">Ninguno</option>
-                                    @foreach (var evento in ViewBag.Eventos)
-                                    {
-                                        <option value="@evento.IdEvento">@evento.Descripcion</option>
-                                    }
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="form-group mb-15 mb-md-0">
-                                <label>Concepto</label>
-                                <input type="text" name="concepto" class="form-control" placeholder="Despensa, apoyo económico..." required />
-                            </div>
-                        </div>
-                        <div class="col-md-2 mt-15">
-                            <div class="form-group mb-15 mb-md-0">
-                                <label>Costo unitario</label>
-                                <input type="number" name="costoUnitario" class="form-control gasto-costo-unitario" step="0.01" min="0.01" required />
-                            </div>
-                        </div>
-                        <div class="col-md-1 mt-15">
-                            <div class="form-group mb-15 mb-md-0">
-                                <label>Cant.</label>
-                                <input type="number" name="cantidad" class="form-control gasto-cantidad" step="1" min="1" value="1" required />
-                            </div>
-                        </div>
-                        <div class="col-md-1 mt-15">
-                            <div class="form-group mb-15 mb-md-0">
-                                <label>Total</label>
-                                <input type="text" class="form-control gasto-total" value="$0.00" disabled />
-                            </div>
-                        </div>
-                        <div class="col-md-4 mt-15">
-                            <div class="form-group mb-15 mb-md-0">
-                                <label>Evidencia (opcional)</label>
-                                <input type="file" name="evidencia" class="form-control" accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx" />
-                            </div>
-                        </div>
-                        <div class="col-md-4 mt-15">
-                            <div class="form-group mb-15 mb-md-0">
-                                <label>Tipo de evidencia</label>
-                                <select name="idTipoDocumento" class="form-control">
-                                    <option value="">— (solo si adjuntas archivo)</option>
-                                    @foreach (var tipo in ViewBag.TiposDocumento)
-                                    {
-                                        <option value="@tipo.IdTipoDocumento">@tipo.Descripcion</option>
-                                    }
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mt-15">
-                            <button type="submit" class="btn btn-primary btn-default btn-squared w-100">Registrar apoyo</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
+        @if (TempData["GastoError"] is not null)
+        {
+            <div class="alert alert-danger mb-15">@TempData["GastoError"]</div>
+        }
 
         <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100 mb-30">
             <div class="d-flex justify-content-between align-items-center mb-15">
                 <h6 class="mb-0">Historial de apoyos</h6>
-                <span class="fw-500">Total otorgado: @(((decimal)ViewBag.TotalApoyos).ToString("C2"))</span>
+                <div class="d-flex align-items-center">
+                    <span class="fw-500 me-20">Total otorgado: @(((decimal)ViewBag.TotalApoyos).ToString("C2"))</span>
+                    <a asp-controller="GastosApoyo" asp-action="Create" asp-route-returnUrl="@Url.Action("Index", new { filtro = ViewBag.Filtro })" class="btn btn-primary btn-default btn-squared px-25">
+                        <i class="uil uil-plus"></i> Registrar apoyo
+                    </a>
+                </div>
             </div>
             <div class="table-responsive">
                 <table class="table mb-0 table-borderless">
@@ -185,26 +106,3 @@
         </div>
     </div>
 </div>
-
-@section Scripts {
-    <script>
-        (function () {
-            if (window.jQuery && jQuery.fn.select2) {
-                jQuery('.select2').select2({ width: '100%' });
-            }
-
-            var costoUnitario = document.querySelector('.gasto-costo-unitario');
-            var cantidad = document.querySelector('.gasto-cantidad');
-            var total = document.querySelector('.gasto-total');
-            if (!costoUnitario || !cantidad || !total) return;
-
-            function actualizarTotal() {
-                var t = (parseFloat(costoUnitario.value) || 0) * (parseInt(cantidad.value, 10) || 0);
-                total.value = t.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
-            }
-
-            costoUnitario.addEventListener('input', actualizarTotal);
-            cantidad.addEventListener('input', actualizarTotal);
-        })();
-    </script>
-}
