@@ -1,5 +1,6 @@
 @model ElectionApp.Models.Integrantes.IntegranteFormViewModel
 @{
+    int? idEvento = ViewBag.IdEvento as int?;
     ViewData["Title"] = "Nuevo integrante";
 }
 
@@ -13,13 +14,14 @@
 
 <div class="row">
     <div class="col-lg-9">
-        <div class="card mb-30">
-            <div class="card-header border-bottom-0 p-sm-30">
+        <div class="card mb-20">
+            <div class="card-header border-bottom-0 p-sm-20">
                 <h5 class="fw-500">Datos del integrante</h5>
             </div>
-            <div class="card-body pt-0 px-30 pb-35">
+            <div class="card-body pt-0 px-20 pb-25">
                 <form asp-action="Create" method="post">
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-15"></div>
+                    <input type="hidden" name="idEvento" value="@idEvento" />
 
                     <div class="row">
                         <div class="col-md-4">
@@ -136,7 +138,14 @@
 
                     <div class="button-group d-flex pt-25">
                         <button type="submit" class="btn btn-primary btn-default btn-squared px-30 me-15">Guardar</button>
-                        <a asp-action="Index" class="btn btn-light btn-default btn-squared px-30">Cancelar</a>
+                        @if (idEvento.HasValue)
+                        {
+                            <a asp-controller="Eventos" asp-action="Details" asp-route-id="@idEvento" class="btn btn-light btn-default btn-squared px-30">Cancelar</a>
+                        }
+                        else
+                        {
+                            <a asp-action="Index" class="btn btn-light btn-default btn-squared px-30">Cancelar</a>
+                        }
                     </div>
                 </form>
             </div>

@@ -3341,7 +3341,7 @@ ul {
 }
 
 .contents {
-  padding: 74px 15px 72px 295px;
+  padding: 74px 15px 72px 215px;
   transition: var(--transition);
   background-color: var(--contents-bg);
 }
@@ -4176,7 +4176,7 @@ body.top-menu .navbar-left .customizer-trigger + .top-menu {
   height: 72px;
   padding-left: 30px;
   background-color: var(--logo-wrapper-bg);
-  min-width: 280px;
+  min-width: 200px;
   justify-content: space-between;
 }
 @media only screen and (max-width: 767px) {
@@ -5386,7 +5386,7 @@ body.top-menu .navbar-left .customizer-trigger + .top-menu {
   height: 100%;
   overflow-y: auto;
   box-shadow: 0 0 30px rgba(var(--light-gray-rgba), 0.1);
-  width: 280px;
+  width: 200px;
   background: var(--color-white);
   padding: 0;
   transition: var(--transition);

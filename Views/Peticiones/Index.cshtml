@@ -30,7 +30,7 @@
             <div class="alert alert-danger mb-15">@TempData["PeticionError"]</div>
         }
 
-        <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100 mb-30">
+        <div class="userDatatable global-shadow border-light-0 p-20 bg-white radius-xl w-100 mb-20">
             <div class="d-flex justify-content-between align-items-center mb-15">
                 <h6 class="mb-0">Historial de peticiones</h6>
                 <a asp-controller="Peticiones" asp-action="Create" asp-route-returnUrl="@Url.Action("Index", new { filtro = ViewBag.Filtro, idEstatus = ViewBag.IdEstatusSeleccionado })" class="btn btn-primary btn-default btn-squared px-25">

@@ -17,8 +17,8 @@
 {
     <div class="row">
         <div class="col-lg-12">
-            <div class="card mb-30">
-                <div class="card-body p-sm-30">
+            <div class="card mb-20">
+                <div class="card-body p-sm-20">
                     <p class="mb-15">Todavía no hay campañas registradas.</p>
                     <a asp-controller="Campanas" asp-action="Create" class="btn btn-primary btn-default btn-squared px-30">Crear la primera campaña</a>
                 </div>
@@ -34,12 +34,12 @@ else
             var esActual = idCampanaActual == campana.IdCampana;
             <div class="col-xxl-4 col-sm-6 mb-25">
                 <div class="card h-100 @(esActual ? "border border-primary" : "")">
-                    <div class="card-body p-sm-30 d-flex flex-column">
+                    <div class="card-body p-sm-20 d-flex flex-column">
                         <h5 class="fw-500 mb-10">
                             @campana.Descripcion
                             @if (esActual)
                             {
-                                <span class="badge bg-primary ms-5">Actual</span>
+                                <span class="badge badge-round bg-primary ms-5">Actual</span>
                             }
                         </h5>
                         <p class="mb-5"><strong>Político:</strong> @campana.Politico</p>

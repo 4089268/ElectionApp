@@ -11,6 +11,11 @@ namespace ElectionApp.Controllers;
 
 public class EventosController : Controller
 {
+    // Valor fijo guardado en Opr_Evento_Participantes.rol para distinguir a
+    // los responsables/organizadores del resto de participantes (asistentes,
+    // oradores, etc. — sin CRUD propio todavía).
+    private const string RolOrganizador = "Organizador";
+
     private readonly ApplicationDbContext _db;
     private readonly IHttpClientFactory _httpClientFactory;
 
@@ -56,6 +61,7 @@ public class EventosController : Controller
             .Include(e => e.Gastos).ThenInclude(g => g.Documentos)
             .Include(e => e.Peticiones).ThenInclude(p => p.IntegranteCampana).ThenInclude(a => a!.Integrante)
             .Include(e => e.Peticiones).ThenInclude(p => p.Estatus)
+            .Include(e => e.Participantes).ThenInclude(p => p.Integrante)
             .FirstOrDefaultAsync(e => e.IdEvento == id && e.IdCampana == idCampanaActual);
 
         if (evento is null)
@@ -67,12 +73,14 @@ public class EventosController : Controller
     }
 
     // GET: /Eventos/Create
-    public IActionResult Create()
+    public async Task<IActionResult> Create()
     {
+        var idCampanaActual = ObtenerIdCampanaActual();
         ViewBag.NombreCampanaActual = HttpContext.Session.GetString("NombreCampanaActual");
+        ViewBag.OrganizadoresDisponibles = await CargarOrganizadoresDisponiblesAsync(idCampanaActual);
         return View(new EventoFormViewModel
         {
-            IdCampana = ObtenerIdCampanaActual(),
+            IdCampana = idCampanaActual,
             Fecha = DateOnly.FromDateTime(DateTime.Today),
             Hora = TimeOnly.FromDateTime(DateTime.Now),
         });
@@ -83,9 +91,12 @@ public class EventosController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(EventoFormViewModel modelo)
     {
+        var idCampanaActual = ObtenerIdCampanaActual();
+
         if (!ModelState.IsValid)
         {
             ViewBag.NombreCampanaActual = HttpContext.Session.GetString("NombreCampanaActual");
+            ViewBag.OrganizadoresDisponibles = await CargarOrganizadoresDisponiblesAsync(idCampanaActual);
             return View(modelo);
         }
 
@@ -96,7 +107,7 @@ public class EventosController : Controller
             Descripcion = modelo.Descripcion,
             Fecha = modelo.Fecha,
             Hora = modelo.Hora,
-            IdCampana = ObtenerIdCampanaActual(),
+            IdCampana = idCampanaActual,
             IdUbicacion = ubicacion.IdUbicacion,
             Lugar = modelo.Lugar,
             CostoEstimado = modelo.CostoEstimado,
@@ -104,6 +115,9 @@ public class EventosController : Controller
 
         _db.OprEventos.Add(evento);
         await _db.SaveChangesAsync();
+
+        await AsignarOrganizadoresAsync(evento.IdEvento, idCampanaActual, modelo.IdsOrganizadores);
+
         return RedirectToAction(nameof(Index));
     }
 
@@ -120,7 +134,13 @@ public class EventosController : Controller
             return NotFound();
         }
 
+        var idsOrganizadores = await _db.OprEventoParticipantes
+            .Where(p => p.IdEvento == id && p.Rol == RolOrganizador)
+            .Select(p => p.IdIntegrante)
+            .ToListAsync();
+
         ViewBag.NombreCampanaActual = HttpContext.Session.GetString("NombreCampanaActual");
+        ViewBag.OrganizadoresDisponibles = await CargarOrganizadoresDisponiblesAsync(idCampanaActual);
         return View(new EventoFormViewModel
         {
             IdEvento = evento.IdEvento,
@@ -137,6 +157,7 @@ public class EventosController : Controller
             Estado = evento.Ubicacion.Estado,
             Latitud = evento.Ubicacion.Latitud,
             Longitud = evento.Ubicacion.Longitud,
+            IdsOrganizadores = idsOrganizadores,
         });
     }
 
@@ -150,13 +171,15 @@ public class EventosController : Controller
             return NotFound();
         }
 
+        var idCampanaActual = ObtenerIdCampanaActual();
+
         if (!ModelState.IsValid)
         {
             ViewBag.NombreCampanaActual = HttpContext.Session.GetString("NombreCampanaActual");
+            ViewBag.OrganizadoresDisponibles = await CargarOrganizadoresDisponiblesAsync(idCampanaActual);
             return View(modelo);
         }
 
-        var idCampanaActual = ObtenerIdCampanaActual();
         var evento = await _db.OprEventos.FirstOrDefaultAsync(e => e.IdEvento == id && e.IdCampana == idCampanaActual);
         if (evento is null)
         {
@@ -173,6 +196,9 @@ public class EventosController : Controller
         evento.CostoEstimado = modelo.CostoEstimado;
 
         await _db.SaveChangesAsync();
+
+        await AsignarOrganizadoresAsync(evento.IdEvento, idCampanaActual, modelo.IdsOrganizadores);
+
         return RedirectToAction(nameof(Index));
     }
 
@@ -209,9 +235,82 @@ public class EventosController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    // POST: /Eventos/QuitarParticipante/5
+    // Quita cualquier fila de Opr_Evento_Participantes (organizador,
+    // participante, etc.) — se usa desde la tabla "Participantes del
+    // evento" en Details. Si la persona era organizador, también deja de
+    // aparecer seleccionada en el multi-select de Edit.
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> QuitarParticipante(int idEventoParticipante)
+    {
+        var idCampanaActual = ObtenerIdCampanaActual();
+        var participante = await _db.OprEventoParticipantes
+            .Include(p => p.Evento)
+            .FirstOrDefaultAsync(p => p.IdEventoParticipante == idEventoParticipante && p.Evento.IdCampana == idCampanaActual);
+
+        if (participante is null)
+        {
+            return NotFound();
+        }
+
+        var idEvento = participante.IdEvento;
+        _db.OprEventoParticipantes.Remove(participante);
+        await _db.SaveChangesAsync();
+
+        return RedirectToAction(nameof(Details), new { id = idEvento });
+    }
+
     // El middleware global en Program.cs ya garantiza que cualquier usuario
     // autenticado que llegue hasta aquí tiene una campaña elegida en sesión.
     private int ObtenerIdCampanaActual() => HttpContext.Session.GetInt32("IdCampanaActual") ?? 0;
+
+    // Personas elegibles como responsable/organizador: afiliadas a la
+    // campaña activa con un rol distinto de Simpatizante (Jefe de Campaña,
+    // Jefe de Sección, Jefe de Manzana).
+    private async Task<object> CargarOrganizadoresDisponiblesAsync(int idCampanaActual)
+    {
+        var afiliaciones = await _db.CatIntegranteCampanas
+            .Include(a => a.Integrante)
+            .Include(a => a.Rol)
+            .Where(a => a.IdCampana == idCampanaActual && a.Rol.Descripcion != "SIMPATIZANTE")
+            .OrderBy(a => a.Rol.IdRol)
+            .ThenBy(a => a.Integrante.ApellidoPaterno).ThenBy(a => a.Integrante.ApellidoMaterno).ThenBy(a => a.Integrante.Nombre)
+            .ToListAsync();
+
+        // NombreCompleto es una propiedad calculada en C# (no una columna),
+        // así que la proyección se hace en memoria, después de traer los datos.
+        return afiliaciones
+            .Select(a => new { a.IdIntegrante, Etiqueta = $"{a.Integrante.NombreCompleto} ({a.Rol.Descripcion})" })
+            .ToList();
+    }
+
+    // Reemplaza el conjunto de organizadores del evento con los ids
+    // recibidos, validando de nuevo contra el servidor (nunca confiar en
+    // los ids que mande el navegador) que sigan siendo elegibles: afiliados
+    // a la campaña activa y con rol distinto de Simpatizante.
+    private async Task AsignarOrganizadoresAsync(int idEvento, int idCampanaActual, List<int> idsSolicitados)
+    {
+        var idsValidos = await _db.CatIntegranteCampanas
+            .Where(a => a.IdCampana == idCampanaActual && a.Rol.Descripcion != "SIMPATIZANTE" && idsSolicitados.Contains(a.IdIntegrante))
+            .Select(a => a.IdIntegrante)
+            .Distinct()
+            .ToListAsync();
+
+        var actuales = await _db.OprEventoParticipantes
+            .Where(p => p.IdEvento == idEvento && p.Rol == RolOrganizador)
+            .ToListAsync();
+
+        var aQuitar = actuales.Where(p => !idsValidos.Contains(p.IdIntegrante));
+        _db.OprEventoParticipantes.RemoveRange(aQuitar);
+
+        var idsActuales = actuales.Select(p => p.IdIntegrante).ToHashSet();
+        var aAgregar = idsValidos.Where(id => !idsActuales.Contains(id))
+            .Select(id => new OprEventoParticipante { IdEvento = idEvento, IdIntegrante = id, Rol = RolOrganizador });
+        _db.OprEventoParticipantes.AddRange(aAgregar);
+
+        await _db.SaveChangesAsync();
+    }
 
     private async Task<CatUbicacion> ObtenerOCrearUbicacionAsync(EventoFormViewModel modelo)
     {

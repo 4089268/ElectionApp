@@ -13,8 +13,8 @@
 
 <div class="row">
     <div class="col-lg-12">
-        <div class="card mb-30">
-            <div class="card-body p-sm-30">
+        <div class="card mb-20">
+            <div class="card-body p-sm-20">
                 <dl class="row mb-0">
                     <dt class="col-sm-3">CURP</dt>
                     <dd class="col-sm-9">@Model.Integrante.Curp</dd>
@@ -68,14 +68,14 @@
             </div>
         </div>
 
-        <div class="card mb-30">
-            <div class="card-header border-bottom-0 p-sm-30 d-flex justify-content-between align-items-center">
+        <div class="card mb-20">
+            <div class="card-header border-bottom-0 p-sm-20 d-flex justify-content-between align-items-center">
                 <h5 class="fw-500 mb-0">Apoyos y donaciones otorgados</h5>
                 <a asp-controller="GastosApoyo" asp-action="Create" asp-route-idIntegranteCampana="@Model.IdIntegranteCampana" asp-route-returnUrl="@Url.Action("Details", "Integrantes", new { id = Model.IdIntegrante })" class="btn btn-primary btn-default btn-squared px-25">
                     <i class="uil uil-plus"></i> Registrar apoyo
                 </a>
             </div>
-            <div class="card-body pt-0 px-30 pb-35">
+            <div class="card-body pt-0 px-20 pb-25">
                 @{
                     var totalApoyos = Model.GastosApoyo.Sum(g => g.Monto);
                 }
@@ -149,14 +149,14 @@
             </div>
         </div>
 
-        <div class="card mb-30">
-            <div class="card-header border-bottom-0 p-sm-30 d-flex justify-content-between align-items-center">
+        <div class="card mb-20">
+            <div class="card-header border-bottom-0 p-sm-20 d-flex justify-content-between align-items-center">
                 <h5 class="fw-500 mb-0">Peticiones</h5>
                 <a asp-controller="Peticiones" asp-action="Create" asp-route-idIntegranteCampana="@Model.IdIntegranteCampana" asp-route-returnUrl="@Url.Action("Details", "Integrantes", new { id = Model.IdIntegrante })" class="btn btn-primary btn-default btn-squared px-25">
                     <i class="uil uil-plus"></i> Registrar petición
                 </a>
             </div>
-            <div class="card-body pt-0 px-30 pb-35">
+            <div class="card-body pt-0 px-20 pb-25">
                 @if (TempData["PeticionError"] is not null)
                 {
                     <div class="alert alert-danger mb-15">@TempData["PeticionError"]</div>

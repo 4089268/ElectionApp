@@ -13,11 +13,11 @@
 
 <div class="row">
     <div class="col-lg-9">
-        <div class="card mb-30">
-            <div class="card-header border-bottom-0 p-sm-30">
+        <div class="card mb-20">
+            <div class="card-header border-bottom-0 p-sm-20">
                 <h5 class="fw-500">@Model.Nombre @Model.ApellidoPaterno @Model.ApellidoMaterno</h5>
             </div>
-            <div class="card-body pt-0 px-30 pb-35">
+            <div class="card-body pt-0 px-20 pb-25">
                 <form asp-action="Edit" asp-route-id="@Model.IdIntegrante" method="post">
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-15"></div>
                     <input type="hidden" asp-for="IdIntegrante" />

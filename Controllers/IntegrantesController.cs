@@ -12,6 +12,11 @@ namespace ElectionApp.Controllers;
 // sin duplicarla; si no existe, Create la registra y la afilia de una vez.
 public class IntegrantesController : Controller
 {
+    // Valor fijo guardado en Opr_Evento_Participantes.rol para las personas
+    // vinculadas a un evento desde este flujo de búsqueda (distinto de
+    // "Organizador", que se asigna desde EventosController).
+    private const string RolParticipanteEvento = "Participante";
+
     private readonly ApplicationDbContext _db;
 
     public IntegrantesController(ApplicationDbContext db)
@@ -47,27 +52,33 @@ public class IntegrantesController : Controller
     }
 
     // GET: /Integrantes/Buscar
-    public IActionResult Buscar()
+    // idEvento: si viene, el flujo se usa para registrar participantes de
+    // un evento concreto (ver Eventos/Details) en vez del alta normal de
+    // integrantes — al terminar, se regresa a Eventos/Details/{idEvento}.
+    public IActionResult Buscar(int? idEvento)
     {
+        ViewBag.IdEvento = idEvento;
         return View();
     }
 
     // POST: /Integrantes/Buscar
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Buscar(string curp)
+    public async Task<IActionResult> Buscar(string curp, int? idEvento)
     {
-        var curpNormalizado = (curp ?? string.Empty).Trim().ToUpperInvariant();
-        if (string.IsNullOrWhiteSpace(curpNormalizado))
+        ViewBag.IdEvento = idEvento;
+        var valorNormalizado = (curp ?? string.Empty).Trim().ToUpperInvariant();
+        if (string.IsNullOrWhiteSpace(valorNormalizado))
         {
-            ModelState.AddModelError(string.Empty, "Captura un CURP para buscar.");
+            ModelState.AddModelError(string.Empty, "Captura un CURP o Clave de Elector para buscar.");
             return View();
         }
 
-        var integrante = await _db.CatIntegrantes.FirstOrDefaultAsync(i => i.Curp == curpNormalizado);
+        var integrante = await _db.CatIntegrantes
+            .FirstOrDefaultAsync(i => i.Curp == valorNormalizado || i.ClaveElector == valorNormalizado);
         if (integrante is null)
         {
-            return RedirectToAction(nameof(Create), new { curp = curpNormalizado });
+            return RedirectToAction(nameof(Create), new { curp = valorNormalizado, idEvento });
         }
 
         var idCampanaActual = ObtenerIdCampanaActual();
@@ -89,6 +100,12 @@ public class IntegrantesController : Controller
             });
             await _db.SaveChangesAsync();
             TempData["Mensaje"] = "Ya existía en el padrón global: se vinculó a esta campaña.";
+        }
+
+        if (idEvento.HasValue)
+        {
+            await RegistrarParticipacionEventoAsync(idEvento.Value, integrante.IdIntegrante, idCampanaActual);
+            return RedirectToAction("Details", "Eventos", new { id = idEvento.Value });
         }
 
         return RedirectToAction(nameof(Edit), new { id = integrante.IdIntegrante });
@@ -118,16 +135,17 @@ public class IntegrantesController : Controller
     }
 
     // GET: /Integrantes/Create
-    public async Task<IActionResult> Create(string? curp)
+    public async Task<IActionResult> Create(string? curp, int? idEvento)
     {
         await CargarListasAsync();
+        ViewBag.IdEvento = idEvento;
         return View(new IntegranteFormViewModel { Curp = curp ?? string.Empty });
     }
 
     // POST: /Integrantes/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(IntegranteFormViewModel modelo)
+    public async Task<IActionResult> Create(IntegranteFormViewModel modelo, int? idEvento)
     {
         modelo.Curp = modelo.Curp.Trim().ToUpperInvariant();
 
@@ -139,6 +157,7 @@ public class IntegrantesController : Controller
         if (!ModelState.IsValid)
         {
             await CargarListasAsync();
+            ViewBag.IdEvento = idEvento;
             return View(modelo);
         }
 
@@ -163,13 +182,20 @@ public class IntegrantesController : Controller
         _db.CatIntegrantes.Add(integrante);
         await _db.SaveChangesAsync();
 
+        var idCampanaActual = ObtenerIdCampanaActual();
         _db.CatIntegranteCampanas.Add(new CatIntegranteCampana
         {
             IdIntegrante = integrante.IdIntegrante,
-            IdCampana = ObtenerIdCampanaActual(),
+            IdCampana = idCampanaActual,
             IdRol = modelo.IdRol,
         });
         await _db.SaveChangesAsync();
+
+        if (idEvento.HasValue)
+        {
+            await RegistrarParticipacionEventoAsync(idEvento.Value, integrante.IdIntegrante, idCampanaActual);
+            return RedirectToAction("Details", "Eventos", new { id = idEvento.Value });
+        }
 
         return RedirectToAction(nameof(Index));
     }
@@ -304,6 +330,39 @@ public class IntegrantesController : Controller
         ViewBag.EstadosCiviles = await _db.CatEstadosCiviles.OrderBy(e => e.Descripcion).ToListAsync();
         ViewBag.Domicilios = await _db.CatDomicilios.ToListAsync();
         ViewBag.NombreCampanaActual = HttpContext.Session.GetString("NombreCampanaActual");
+    }
+
+    // Vincula al integrante como participante de un evento (ver
+    // Eventos/Details, sección "Participantes del evento"). Revalida en
+    // servidor que el evento pertenezca a la campaña activa (nunca confiar
+    // en el idEvento recibido de un form/querystring). Opr_Evento_Participantes
+    // tiene UNIQUE (id_evento, id_integrante): si la persona ya estaba
+    // registrada (p.ej. como Organizador), no se duplica la fila.
+    private async Task RegistrarParticipacionEventoAsync(int idEvento, int idIntegrante, int idCampanaActual)
+    {
+        var eventoValido = await _db.OprEventos.AnyAsync(e => e.IdEvento == idEvento && e.IdCampana == idCampanaActual);
+        if (!eventoValido)
+        {
+            return;
+        }
+
+        var existente = await _db.OprEventoParticipantes
+            .FirstOrDefaultAsync(p => p.IdEvento == idEvento && p.IdIntegrante == idIntegrante);
+
+        if (existente is not null)
+        {
+            TempData["Mensaje"] = $"Esta persona ya estaba registrada en el evento (rol: {existente.Rol}).";
+            return;
+        }
+
+        _db.OprEventoParticipantes.Add(new OprEventoParticipante
+        {
+            IdEvento = idEvento,
+            IdIntegrante = idIntegrante,
+            Rol = RolParticipanteEvento,
+        });
+        await _db.SaveChangesAsync();
+        TempData["Mensaje"] = "Persona registrada como participante del evento.";
     }
 
     // El middleware global en Program.cs ya garantiza que cualquier usuario

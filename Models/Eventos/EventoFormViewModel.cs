@@ -70,4 +70,11 @@ public class EventoFormViewModel
 
     [Range(-180, 180)]
     public decimal? Longitud { get; set; }
+
+    // Responsables/organizadores del evento: Cat_Integrantes.id_integrante
+    // (identidad global) de personas afiliadas a la campaña activa con un
+    // rol distinto de Simpatizante. Obligatorio, mínimo uno.
+    [MinLength(1, ErrorMessage = "Selecciona al menos un responsable u organizador")]
+    [Display(Name = "Responsables / organizadores")]
+    public List<int> IdsOrganizadores { get; set; } = new();
 }

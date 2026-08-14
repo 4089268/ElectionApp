@@ -22,7 +22,7 @@
 
 <div class="row">
     <div class="col-lg-12">
-        <div class="userDatatable global-shadow border-light-0 p-30 bg-white radius-xl w-100 mb-30">
+        <div class="userDatatable global-shadow border-light-0 p-20 bg-white radius-xl w-100 mb-20">
             <div class="table-responsive">
                 <table class="table mb-0 table-borderless">
                     <thead>
@@ -53,15 +53,15 @@
                                 <td>
                                     @if (usuario.Activo)
                                     {
-                                        <span class="badge bg-success">Activo</span>
+                                        <span class="badge badge-round bg-success">Activo</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-light-danger">Inactivo</span>
+                                        <span class="badge badge-round bg-light-danger">Inactivo</span>
                                     }
                                     @if (usuario.FechaBloqueo is not null)
                                     {
-                                        <span class="badge bg-light-danger ms-5">Bloqueado</span>
+                                        <span class="badge badge-round bg-light-danger ms-5">Bloqueado</span>
                                     }
                                 </td>
                                 <td><div class="userDatatable-content">@(usuario.UltimoAcceso?.ToString("dd/MM/yyyy HH:mm"))</div></td>
